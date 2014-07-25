@@ -1,9 +1,0 @@
-The flex-dot-* files contain the information needed in Unix hidden 
-files that start with "." like ".project".  We don't want to store
-the actual ".project", etc. files in the repository because details
-of those files differ from installation to installation because pathnames
-and locations of the working copies are different.  So we provide
-these templates that can be renamed and modified locally.
-
-By not keeping the real files in the repository, we avoid thrashing and
-having updates and commits interfere with other programmer's settings.
