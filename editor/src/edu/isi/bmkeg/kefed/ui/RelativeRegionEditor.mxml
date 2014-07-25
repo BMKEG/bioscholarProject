@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: RelativeRegionEditor.mxml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $ 
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $ -->
+<ui:StructuredEditorComponent width="100%"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:ui="edu.isi.bmkeg.kefed.ui.*"
+	initialize="init()" creationComplete="handleCreationComplete(event)"
+	borderStyle="solid" borderColor="#FFFF00" 
+	backgroundAlpha="1" backgroundColor="#FFFFFF">
+	<!-- Component for entering descriptions of anonymous, relative
+	 regions.  Relative regions are arbitrary regions defined by their
+	 relationship to some other, named region.
+	
+	The data field holds a plain Object that has 'relation' and 'region' fields to
+	hold the relationship and the reference region for the object.
+	Both are string-valued.  The relation will comprise the relations
+	"part-of" and "overlaps".  Possible "direct-part-of" will be added.
+	The allowedRegions collection is an ArrayCollection of strings that
+	provide the list of allowed region names.
+	The allowOtherRegions flag controls whether the choice of regions is 
+	limited to the ones provided, or if other units can be added.  Generally
+	in fixed atlas applications, this will be false.
+	-->
+	<mx:Script>
+		<![CDATA[
+			import mx.events.ListEvent;
+			import edu.isi.bmkeg.utils.BindingDebugger;
+			import mx.utils.ArrayUtil;
+			import mx.utils.StringUtil;
+			import mx.managers.LayoutManager;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import flare.util.Colors;
+			import mx.controls.listClasses.ListBase;
+			import mx.core.UIComponent;
+			import mx.collections.ArrayCollection;
+			import edu.isi.bmkeg.kefed.ui.UiUtil;
+			
+			public static var EDITOR_HEIGHT_OFFSET:int = 162; // editorHeightOffset value for use in DataGridColumns.
+			public static var EDITOR_WIDTH_OFFSET:int = 100;
+			
+			[Bindable]
+			public var allowedRegions:ArrayCollection;
+			[Bindable]
+			public var allowOtherRegions:Boolean = false;
+			
+			// Test.  Trying to figure out how to force the calcuation
+			//  of the size.  Failing right now, because the instantiation
+			//  is not complete after creating the instance.  Not sure what
+			//  needs to be done to force creation.
+			public function computeSize():void {
+				commitProperties();
+				validateDisplayList();
+				trace("ComputeSize 0: ",measuredWidth,"x",measuredHeight);
+				validateNow();
+				trace("ComputeSize 1: ",measuredWidth,"x",measuredHeight);
+				measure();
+				trace("ComputeSize 2: ",measuredWidth,"x",measuredHeight);
+				LayoutManager.getInstance().validateClient(this);
+				trace("ComputeSize 3: ",measuredWidth,"x",measuredHeight);
+				measure();
+				trace("ComputeSize 4: ",measuredWidth,"x",measuredHeight);
+			}
+			
+			public function handleCreationComplete(event:Event):void {
+				trace("Creation complete: ",measuredWidth,"x",measuredHeight);
+				trace("CC: dataitem.regions = ", dataItem.regions as Array);
+				callLater(scrollToSelection,[]);
+				BindingDebugger.debugComponent(this, true);
+			}
+			
+			private function scrollToSelection():void {
+				trace("Scroll to selection", regions.selectedIndices);
+				var indexLength:int = regions.selectedIndices.length;
+				if (indexLength > 0) {
+					trace("SS: dataitem.regions = ", dataItem.regions as Array);
+					trace("SS: regions.selectedIndices = ", regions.selectedIndices);
+					trace("SS: Scrolling to ", regions.selectedIndices[indexLength - 1]);
+					regions.scrollToIndex(regions.selectedIndices[indexLength - 1]);
+//					callLater(regions.scrollToIndex, [regions.selectedIndices[0]]);
+				}
+			}
+			
+			public function init():void {
+				addEventListener(FlexEvent.DATA_CHANGE, handleDataChanged);
+				newRegion.addEventListener(KeyboardEvent.KEY_UP, keyHandler);
+			}
+			
+			public function handleDataChanged(event:Event):void {
+				trace("Datachanged.");
+			}
+			
+			private function keyHandler(event:KeyboardEvent):void {
+    			if (event.keyCode == Keyboard.ENTER) {
+       				addListItem(event);
+    		 	}
+   			}
+   			
+   				
+			/** React to changes in the input text box.  Use this to 
+			 * enable and disable the add button.
+			 * 
+			 * @param evt The event triggering this change.
+			 */
+			 private function handleTextChange(evt:Event):void {
+			 	var newText:String = StringUtil.trim(newRegion.text);
+			 	var hasInput:Boolean = newText.length > 0;
+			 	var enableAdd:Boolean = hasInput && !allowedRegions.contains(newText);
+			 	addRegionButton.enabled = enableAdd;
+			 }
+		   			
+   			private function scrollToRegion(region:Object):void {
+				var index:int = ArrayUtil.getItemIndex(region, dataItem.regions as Array);
+				if (index >= 0) regions.scrollToIndex(index);
+			}
+   			
+   			private function addListItem(evt:Event):void {
+	    		var newText:String = StringUtil.trim(newRegion.text);
+	    		if (newText.length > 0 && !allowedRegions.contains(newText)) {
+	    			trace("AL: Adding to dataItem.regions");
+		     		(dataItem.regions as Array).push(newText);
+		     		trace("AL: Adding to allowedRegions");
+		     		allowedRegions.addItem(newText);
+		     		trace("AL: After adding to allowedRegions");
+// Things to try:
+//	    	executeBindings(true)
+//   invalidateDisplayList();
+//   validateNow();
+
+//		     		var r:Array = (dataItem.regions as Array);
+//		     		r.push(newText)
+//		     		dataItem.regions = r;
+		    		trace("Add Item: About to adjust tile size");
+		    		UiUtil.adjustTileSizeForAddedItem(regions, newText);
+//		    		callLater(scrollToSelection, [regions, allowedRegions.length - 1]);
+		      		addRegionButton.enabled = false; // Try not to add multiple identical strings.
+		    		newRegion.text=""; // Clear value to make new input more efficient
+//		    		trace("Before validate");
+//		    		scrollToSelection();
+//		    		invalidateDisplayList();
+//		    		validateNow();
+//		    		trace("After validate");
+//					trace("Before execute bindings");
+//					regions.executeBindings();
+//					scrollToSelection();
+//					trace("After execute bindings");
+	    		}
+	    	}
+	    	
+		private function updateDataItemForSelection(event:ListEvent):void {
+			// TODO: CHECK THIS!
+			dataItem.regions = regions.selectedItems;
+		}
+	
+		override protected function commitProperties():void {
+			trace("Commit Properties");
+			trace("CP: Selection", regions.selectedIndices);
+			super.commitProperties();
+		}
+
+//		override protected function measure():void {
+//			trace(this.parent.parent);
+//			super.measure();
+//			trace("Measure called.  w=",measuredWidth, "h=",measuredHeight);
+//			ListBase(this.parent.parent).invalidateList();
+//		}
+		]]>
+	</mx:Script>
+	
+	<mx:ArrayCollection id="allowedRelations">
+		<mx:String>equivalent</mx:String>
+		<mx:String>part-of</mx:String>
+		<mx:String>overlaps</mx:String>
+		<mx:String>non-overlapping</mx:String>
+	</mx:ArrayCollection>
+		<!-- Setup bi-directional bindings -->
+		<mx:Binding source="relation.value" destination="dataItem.relation"/>
+		<mx:Binding source="regions.selectedItems" destination="dataItem.regions"/>
+
+		<ui:DataGridComboBox id="relation"
+					 dataProvider="{allowedRelations}"
+					 selectedItem="{dataItem.relation}"
+					 editable="false"
+					 toolTip="Equivalent means the same area is covered.  Part-of means fully contained in."
+					 width="100%">
+		</ui:DataGridComboBox>
+		<mx:TileList id="regions" dataProvider="{allowedRegions}"
+				 allowMultipleSelection="true"
+				 selectedItems="{dataItem.regions}"
+				 creationComplete="UiUtil.adjustTileSizeToFit(regions)"
+				 width="100%"/>
+	    <mx:HBox id="addRegions" visible="{allowOtherRegions}" width="100%">
+	    	<mx:TextInput id="newRegion" text="" change="handleTextChange(event)"/>
+	    	<mx:Button id="addRegionButton" label="+" click="addListItem(event);" enabled="false"/>
+	    </mx:HBox>
+</ui:StructuredEditorComponent>

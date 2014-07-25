@@ -1,0 +1,18 @@
+;; $Id: neural-connectivity-library.plm 38 2011-03-18 05:41:28Z taruss2000@gmail.com $
+;;
+;;  Modules for the neuroconnectivity part of the library
+;;  the actual data gets loaded from additional files.  This
+;;  just provides the module definition.
+;;
+
+
+(IN-PACKAGE "STELLA")
+
+(IN-MODULE "PL-USER")
+
+(DEFMODULE "NEURAL-CONNECTIVITY-LIBRARY"
+    :INCLUDES ("DIGITAL-LIBRARY")
+    :USES ("LOGIC" "STELLA")
+    :CASE-SENSITIVE? TRUE)
+
+

@@ -1,0 +1,31 @@
+;; $Id: species.plm 38 2011-03-18 05:41:28Z taruss2000@gmail.com $
+;;
+;;  Modules and code for the kefed neuralconnectivity application
+;;
+
+
+(IN-PACKAGE "STELLA")
+
+(IN-MODULE "PL-USER")
+
+(DEFMODULE "SPECIES"
+    :INCLUDES ("PL-KERNEL-KB")
+    :USES ("LOGIC" "STELLA")
+    :CASE-SENSITIVE? TRUE)
+
+(IN-MODULE "SPECIES")
+(IN-DIALECT :KIF)
+
+(DEFCONCEPT Species)
+(DEFCONCEPT Genus)
+(DEFCONCEPT Animal)
+(DEFCONCEPT Mammal (Animal))
+(DEFCONCEPT Rodent (Mammal))
+(DEFCONCEPT Ratus-Ratus (Rodent)
+   :AXIOMS (Species Ratus-Ratus))
+(DEFCONCEPT Mouse (Rodent)
+   :AXIOMS (Species Mouse))
+(DEFCONCEPT Transgenic-Mouse (Mouse))
+(DEFCONCEPT VB1-Transgenic-Mouse (Transgenic-Mouse))
+
+

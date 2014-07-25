@@ -1,0 +1,48 @@
+French version
+© KAP IT
+Le composant que vous avez télécharger (ci-après le « Logiciel ») est un logiciel protégé par le Code de la propriété intellectuelle, dont les droits appartiennent à la société KAP IT, immatriculée au registre du commerce et des sociétés dEvry sous le numéro B 483 404 570.
+Le téléchargement de ce Logiciel implique votre acceptation sans réserve des termes de la licence consentie par KAP IT, tel que définie ci-après.
+Toute utilisation ou toute reproduction même partielle du Logiciel, hors des cas expressément autorisés et des restrictions imposées par la présente licence, est strictement interdite et constituerait une contrefaçon passible de sanctions civiles et pénales.
+La présente licence nemporte cession ou concession, à votre profit, daucun droit de propriété intellectuelle, si ce nest le droit dutiliser le Logiciel dans les conditions et limites définies ci-après, que vous vous engagez à respecter :
+1. Vous êtes autorisé, pour vos besoins personnels ou pour les besoins de votre société, à :
+- utiliser le Logiciel ;
+- en effectuer autant de copies que vous le souhaitez ;
+- à intégrer le Logiciel dans une autre application si lutilisation de cette application est également limitée à vos besoins personnels ou aux besoins de votre société.
+2. En revanche, il vous est interdit, que ce soit à titre gratuit ou à titre payant, de fournir le Logiciel à un tiers ou de lutiliser pour les besoins dun tiers ;
+3. Par exception à ce qui précède, vous êtes autorisé à fournir le Logiciel à un tiers si les conditions suivantes sont cumulativement remplies :
+- le Logiciel doit être intégré dans une application que vous avez développée ;
+- ladite application doit être exclusivement fournie à vos clients et vos clients doivent en être les utilisateurs finaux ;
+- la licence dutilisation de cette application doit par conséquent interdire au client de concéder tout droit dutilisation ou de reproduction de lapplication à quelque tiers que ce soit ;
+- les clients utilisateurs finaux de lapplication doivent être tenus, préalablement à toute utilisation de lapplication, de prendre connaissance et daccepter les termes de la présente licence, dont ils devront sengager à respecter à leur tour les termes et conditions, par écrit ou par un mécanisme dacceptation par « clic » ;
+- lapplication doit comporter la mention très apparente des droits de propriété intellectuelle de KAP IT sur le Logiciel (la mention « © KAP IT » doit figurer sur un éventuel écran de lancement de lapplication et dans la rubrique « A propos de  » ou « About », ainsi que dans toute documentation quel quen soit le support.
+A contrario, il vous est interdit dutiliser le Logiciel pour développer un autre logiciel qui naurait pas vocation à être directement utilisé par des utilisateurs finaux, et notamment, pour développer un autre composant logiciel susceptible de concurrencer le Logiciel.
+4. Dans tous les cas, les droits qui vous sont concédés portent exclusivement sur le code exécutable du Logiciel : il vous est interdit de traduire, créer des dérivés, décompiler, désassembler, pratiquer de lingénierie inverse ou tenter de toute autre manière dobtenir ou de déduire le code source du Logiciel à partir de son code exécutable, sauf dans les cas expressément prévus par les dispositions impératives du Code de la propriété intellectuelle et à condition den informer préalablement KAP IT.
+5. En dehors des cas définis ci-dessus, toute redistribution, toute cession à titre gratuit ou payant, et toute exploitation commerciale de tout ou partie du Logiciel, ou dun logiciel utilisant tout ou partie du Logiciel, sont strictement interdites.
+EXCLUSION DE RESPONSABILITE : La présente licence, consentie par KAP IT, titulaire des droits dauteur sur le Logiciel, nest assortie daucune garantie. En particulier KAP IT ne garantit pas la conformité ni ladéquation du Logiciel à vos besoins, ni sa compatibilité avec quelque matériel ou quelque logiciel ou système dexploitation que ce soit. Elle ne garantit pas davantage que le Logiciel est exempt danomalies. Par conséquent, la responsabilité de KAP IT ne saurait en aucun cas être engagé en cas de préjudice, de quelque nature quil soit, causé directement ou indirectement par le Logiciel.
+KAP IT pourra discrétionnairement mettre fin à la présente licence à tout moment.
+Cette licence est soumise au droit français. Elle est rédigée en anglais et en français : en cas de divergence entre les deux versions, le document en français prévaudra. Tout litige relatif au Logiciel sera soumis aux tribunaux de Paris.
+
+ 
+English version
+© KAP IT
+The component that you downloaded (hereafter Software) is a software, protected by the intellectual property Code, of which the rights belong to KAP IT, a French company registered under the number B 483.404.570 in Evry.
+The download of this Software implies your general acceptance of the terms of the license authorized by KAP IT, such as defined below.
+Any use or any reproduction, even partial of the Software, out of the expressly authorized cases and the restrictions imposed by the present license, is strictly prohibited and would constitute a counterfeit liable to civil and penal prosecution.
+The present license does not carry transfer or concession of any intellectual property, except for the right to use the Software under the conditions and limits defined below, should you respect the following points:
+1. You are authorized, for your personal needs or the needs for your company:
+ - to use the Software;
+- to make as many copies as you wish;
+- to integrate the Software in another application if the use of this application is also limited to your personal needs or the needs for your company.
+2. On the other hand, you cannot provide the Software to a third party or use it for the needs for a third party, should it be on a purely free basis or paying basis;
+3. By exception with what precedes, you are authorized to provide the Software to a third party if the following conditions are cumulatively met:
+- the Software must be integrated in an application you developed;
+ - the aforementioned application must be exclusively provided to your customers and your customers must be the end users of the application;
+ - the license of use of this application must consequently prohibit the customer from conceding any right of use or of reproduction of the application to any third party;
+- the end users of the application must be held, before any use of the application, to take note and to accept the terms of this license, of which they will have to be committed respecting in their turn the terms and conditions, in writing or by a mechanism of acceptance by click;
+- the application must comprise a very apparent mention of the intellectual property rights of KAP IT on the Software (the mention © KAP IT must be reproduced on a possible start screen of the application and in the heading About, as in any documentation on any support.
+On the opposite, you are strictly prohibited to use the Software to develop another software which would not be directly used by end users, and in particular, to develop another software component likely to compete with the Software.
+4. In all cases, the rights which are conceded to you relate exclusively to the compilled code of the Software: you must not translate, create derivatives, decompile, disassemble, practice reverse engineering or try in any other manner to obtain or deducing the source code from the Software starting from its compiled code, except in the cases expressly stated by the Code of the intellectual property and with prior notice to KAP IT.
+5. Apart from the cases defined above, any redistribution, any transfer on a purely free or paying basis, and any commercial exploitation of whole or part of the Software, or a software using whole or part of the Software, are strictly prohibited.
+EXCLUSION OF RESPONSIBILITY: The present license, authorized by KAP IT, holder of the property right on the Software, is supplied with no guarantee. In particular KAP IT neither guarantees conformity of the Software to your needs, nor its compatibility with some hardware or some software or operating system. It does not guarantee more than the Software is free from anomalies. Consequently, the responsibility for KAP IT could not in no case to be committed in the event of damage, of whatever nature, caused directly or indirectly by the Software.
+KAP IT will be able to put an end to the present license at any moment.
+This license is subjected to the French laws. It is written in English and French: in the event of divergence between the two versions, the French document will prevail. Any litigation relating to the Software will be ruled at the court of Paris.

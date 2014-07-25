@@ -1,0 +1,6 @@
+.history
+.settings
+bin/
+build/
+dist/
+doc/

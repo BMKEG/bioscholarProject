@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: NotesComponent.mxml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $ 
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $ -->
+<mx:Box label="Notes" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<!-- Component to handle the notes section of editing Kefed Objects.
+	-->
+	<mx:Script>
+		<![CDATA[
+			import edu.isi.bmkeg.kefed.elements.IKefedAnnotatedObject;
+			
+			[Bindable]
+			public var myObject:IKefedAnnotatedObject;
+		]]>
+	</mx:Script>
+	<mx:Label text="Notes"/>
+	<mx:TextArea id="notesArea" width="100%" height="100%" editable="true"
+				 text="{myObject.notes}"
+				 valueCommit="myObject.notes = notesArea.text"/>
+</mx:Box>

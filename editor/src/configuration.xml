@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id: configuration.xml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $  xmlns="http://www.isi.edu/bmkeg/"-->
+<configuration>
+  <modelStoreType>persevere</modelStoreType>
+  <modelStoreUrl>persevere/KefedModel</modelStoreUrl>
+
+  <dataStoreType>persevere</dataStoreType>
+  <dataStoreUrl>persevere/KefedModel</dataStoreUrl>
+
+
+  <!--
+  <schemaStoreType>persevere</schemaStoreType>
+  <schemaStoreUrl>persevere/</schemaStoreUrl>
+  -->
+
+  <!--
+   <callbackUrl>http://cowabunga.isi.edu:9000/echo/done</callbackUrl>
+   -->
+   <callbackFunction>alert</callbackFunction>
+  
+  <!--
+  <action>editModel</action>
+  <uid>8AC46693-1A6B-C219-A03F-8027A6A2A615</uid>
+  -->
+  
+  <!--
+  <action>createModel</action>
+  <uid>8AC46693-EEFF-C219-A03F-8027A6A2A615</uid>
+  -->
+  
+  <!--
+  <action>deleteModel</action>
+  <uid>8AC46693-EEFF-C219-A03F-8027A6A2A615</uid>
+  -->
+  
+  <!--
+  <action>createModel</action>
+  <uid>TEST-UID-5</uid>
+  -->
+  
+  <!--
+  <action>deleteModel</action>
+  <uid>TEST-UID-5</uid>
+  -->
+  
+ <!-- 
+  <action>loadModel</action>
+  <uid>28E9B7E0-C52C-3D14-0ECB-BBDDA991F23C</uid>
+  -->
+  
+  <action>copyModel</action>
+  <uid>28E9B7E0-C52C-3D14-0ECB-BBDDA991F23C</uid>
+   
+ </configuration>

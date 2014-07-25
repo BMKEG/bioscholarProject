@@ -1,0 +1,44 @@
+;; $Id: load-kefed-local.plm 38 2011-03-18 05:41:28Z taruss2000@gmail.com $
+
+(IN-PACKAGE "STELLA")
+(IN-MODULE "PL-USER")
+
+#|
+
+(load "/Users/tar/Documents/powerloom/load-powerloom")
+(in-package :stella)
+ ; (unset-feature :just-in-time-inference)
+ ; (make-system "bioscholar" :common-lisp)
+ ; (setq *BACKLINK-ALL-PROPOSITION-ARGUMENTS?* true)
+(load "/Users/tar/Projects/BioScholar/KeFed/powerloom/part/load-kefed.plm")
+(cc experiments)
+
+
+;; The main set of query information is in "kefed.plm"
+;;
+;; See example-run.plm for some example queries.
+;;
+
+|#
+
+(LOAD "partof.plm")
+(LOAD "atlas.plm")
+(LOAD "swanson-1998.plm")
+(LOAD "species.plm")
+(LOAD "digital-library.plm")
+(LOAD "kefed.plm")
+(LOAD "neural-connectivity-library.plm")
+(LOAD "neural-connectivity-library-data-1.plm")
+(LOAD "neural-connectivity-library-data-2.plm")
+(LOAD "neural-connectivity-library-data-3.plm")
+(LOAD "neural-connectivity.plm")
+(LOAD "experiment-data.plm")
+(LOAD "experiment-data-2.plm")
+
+
+
+
+
+
+
+

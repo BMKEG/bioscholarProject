@@ -1,0 +1,146 @@
+;;; -*- Mode: Lisp; Package: STELLA; Syntax: COMMON-LISP; Base: 10 -*-
+
+;;; File implementing a part-of set of relations based on the
+;;; the RCC5 (Region Connection Calculus)
+;;; Author: University of Southern California
+;;; Version: $Id: partof.plm 50 2011-06-09 22:55:52Z taruss2000@gmail.com $
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; BEGIN LICENSE BLOCK ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                                                                            ;
+; Version: MPL 1.1/GPL 2.0/LGPL 2.1                                          ;
+;                                                                            ;
+; The contents of this file are subject to the Mozilla Public License        ;
+; Version 1.1 (the "License"); you may not use this file except in           ;
+; compliance with the License. You may obtain a copy of the License at       ;
+; http://www.mozilla.org/MPL/                                                ;
+;                                                                            ;
+; Software distributed under the License is distributed on an "AS IS" basis, ;
+; WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License   ;
+; for the specific language governing rights and limitations under the       ;
+; License.                                                                   ;
+;                                                                            ;
+; The Original Code is the PowerLoom KR&R System.                            ;
+;                                                                            ;
+; The Initial Developer of the Original Code is                              ;
+; UNIVERSITY OF SOUTHERN CALIFORNIA, INFORMATION SCIENCES INSTITUTE          ;
+; 4676 Admiralty Way, Marina Del Rey, California 90292, U.S.A.               ;
+;                                                                            ;
+; Portions created by the Initial Developer are Copyright (C) 2008           ;
+; the Initial Developer. All Rights Reserved.                                ;
+;                                                                            ;
+; Contributor(s):                                                            ;
+;                                                                            ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; END LICENSE BLOCK ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;
+;;;;
+
+(in-module "PL-KERNEL-KB")
+
+(defmodule "PART"
+  :documentation "Module for a part-of relations based on Region Connection Calculus 5 (RCC5) relations.  $Revision: 50 $
+
+This implementation is an efficient encoding of the part-of relations.
+Inference is limited to transitive relationships in the part-of hierarchy
+and certain disjointness axioms.
+
+Implements DISCRETE (DR), OVERLAPS (PO), PROPER-PART-OF (PPI)
+relations directly. For EQ the standard PowerLoom equality (=) is
+used.  That means that if equality is desired, one must create the
+regions using the REGION function, so that they end up being skolems.
+
+Also, there is a basic DIRECT-PART-OF relation for expressing a
+relationship where there is no intervening parts.  This is much more
+efficient than trying to derive that relationship using a negated
+existential.
+
+Examples:
+ (assert (discrete (region g0) (region g1)))
+ (assert (proper-part-of (region g1) (region g2)))
+ (assert (proper-part-of (region g2) (region g3)))
+ (assert (= (region g3) (region g3alt)))
+
+ (retrieve all (proper-part-of (region ?x) (region ?y)))
+ (retrieve all (discrete (region ?x) (region ?y)))
+ (retrieve all (not (discrete (region ?x) (region ?y))))
+
+For more background on the RCC5, consult
+  David A. Randell and Zhan Cui and Anthony Cohn,
+  'A Spatial Logic Based on Regions and Connection',
+  KR '92. Principles of Knowledge Representation and Reasoning:
+          Proceedings of the Third International Conference,
+  pp. 165-176, 1992.
+
+  Anthony G. Cohn, Brandon Bennett, John Gooday and Nicholas M. Gotts,
+  'Representing and Reasoning with Qualitative Spatial Relations About Regions',
+  in Spatial and Temporal Reasoning, Oliviero Stock (ed).,
+  (Kluwer Academic Publishers: Boston), 1997.
+"
+  :includes ()
+  :uses ())
+
+(defconcept /part/geometric-region)
+(defconcept /part/geometric-region-2d (/part/geometric-region))
+(defconcept /part/geometric-region-3d (/part/geometric-region))
+(deffunction /part/region ((?x THING)) :-> (?g /part/GEOMETRIC-REGION))
+
+(defrelation /part/discrete ((?x /part/geometric-region) (?y /part/geometric-region))
+  :documentation "DISCRETE: Discrete regions with no overlap or part containment."
+;; :axioms (symmetric /part/discrete)
+  :=>> (/part/discrete ?y ?x)		; Symmetry
+;;    :=>> (and (not (/part/overlaps ?x ?y))
+;;  	    (not (/part/proper-part-of ?x ?y))
+;;  	    (not (= ?x ?y)))
+  )
+
+(defrelation /part/overlaps ((?x /part/geometric-region) (?y /part/geometric-region))
+  :documentation "OVERLAPS: Partially Overlaps regions"
+;;  :axioms (symmetric /part/overlaps)
+  :=>> (/part/overlaps ?y ?x)
+;;   :=>> (and (not (/part/discrete ?x ?y))
+;; 	   (not (/part/proper-part-of ?x ?y))
+;; 	   (not (= ?x ?y)))
+  )
+
+(defrelation /part/proper-part-of ((?x /part/geometric-region) (?y /part/geometric-region))
+  :documentation "PROPER-PART-OF: Proper Part Inverse.  ?x is the proper part of ?y"
+;;  :axioms (and (antisymmetric /part/proper-part-of) (transitive /part/proper-part-of))
+  :<= (exists (?z) (and (query (/part/proper-part-of ?x ?z) :how-many :all :inference-level :assertion)
+			(bound-variables ?x ?z)
+			(/part/proper-part-of ?z ?y)))
+;;   :=>> (and (not (/part/discrete ?x ?y))
+;; 	    (not (/part/overlaps ?x ?y))
+;; 	    (not (= ?x ?y)))
+  )
+
+;; (defrelation /part/direct-part-of ((?x /part/geometric-region) (?y /part/geometric-region))
+;;   :documentation "DIRECT-PART-OF: Direct Part Inverse.  ?x is the direct part of ?y"
+;;   :axioms (antisymmetric /part/direct-part-of)
+;;   :=> (/part/proper-part-of ?x ?y)
+;;   )
+
+#|
+;;; TESTS
+
+(assert (and (/part/proper-part-of (/part/region g1) (/part/region g2))
+	     (/part/proper-part-of (/part/region g2) (/part/region g3))))
+
+
+(ask (/part/proper-part-of (/part/region g2) (/part/region g3)))
+; => true
+(ask (/part/discrete (/part/region g2) (/part/region g3)))
+; => false (or unknown?)
+
+(retrieve all (/part/proper-part-of ?x ?y))
+;  ?x = g1, ?y = g2
+;  ?x = g2, ?y = g3
+;  ?x = g1, ?y = g3
+
+(assert (/part/discrete (/part/region g0) (/part/region g1)))
+
+(retrieve all (/part/discrete ?x ?y))
+(retrieve all (/part/discrete (/part/region ?x) (/part/region ?y)))
+(retrieve all (not (/part/discrete ?x ?y))) 
+
+|#

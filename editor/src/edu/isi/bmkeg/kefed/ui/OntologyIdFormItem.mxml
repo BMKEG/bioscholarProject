@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: OntologyIdFormItem.mxml 50 2011-06-09 22:55:52Z taruss2000@gmail.com $ 
+     $Date: 2011-06-09 15:55:52 -0700 (Thu, 09 Jun 2011) $
+     $Revision: 50 $ -->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="100%">
+<!-- A form that is used for entering information about variables.
+     This is the common form used for variables of all types
+     -->
+<mx:Script>
+	<![CDATA[
+		import mx.events.CloseEvent;
+		import flare.vis.data.DataList;
+		import edu.isi.bmkeg.kefed.ontology.OntologyTermReference;
+		import mx.events.ListEvent;
+		import mx.core.Application;
+	
+	import mx.events.FlexEvent;
+	import mx.managers.PopUpManager;
+	import mx.collections.ArrayCollection;
+	
+	import com.kapit.diagram.view.DiagramObject;
+	import com.kapit.diagram.view.DiagramView;
+	
+	import edu.isi.bmkeg.kefed.ontology.OntologySearchEvent;
+	import edu.isi.bmkeg.kefed.ontology.OntologySearchInterface;
+	import edu.isi.bmkeg.kefed.ontology.bioportal.NCBOBioPortalDialog;
+	
+	import edu.isi.bmkeg.kefed.elements.KefedObject;
+	import edu.isi.bmkeg.kefed.elements.KefedFieldTemplate;
+	import edu.isi.bmkeg.kefed.elements.IKefedNamedObject;
+	
+	[Bindable]
+	public var myObject:IKefedNamedObject;
+	
+	private var ncbo:NCBOBioPortalDialog;
+	private var urlPopup:SimpleInputWindow;
+	
+   /** Respond to changes in the ontology term  window by
+     *  enabling and disabling the action buttons that require a
+     *  selection
+     *
+     * @param evt The event
+     */
+//     private function handleTermChange (evt:Event):void {
+//		var enable:Boolean = (termList.selectedIndex != -1);
+//		removeTermButton.enabled = enable;
+//		addUrlButton.enabled = enable;
+//	}
+
+	/** Pop up a simple dialog to set the URL for the selected
+	 *  item.
+	 */
+	private function handleAddUrl():void {
+		var oref:OntologyTermReference = termList.selectedItem as OntologyTermReference;
+		if (oref != null) {
+			if (urlPopup == null) {
+				urlPopup = PopUpManager.createPopUp(this, SimpleInputWindow, true) as SimpleInputWindow;
+				urlPopup.prompt = "Term URL";
+				urlPopup.addEventListener(Event.CLOSE, closeUrlPopup);
+				urlPopup.cancelButton.addEventListener(MouseEvent.CLICK, closeUrlPopup);
+				urlPopup.okButton.addEventListener(MouseEvent.CLICK, addUrl);
+			} else {
+				PopUpManager.addPopUp(urlPopup, this, true);
+			}
+			urlPopup.input.text = oref.termURL;
+			PopUpManager.centerPopUp(urlPopup);		
+		}
+	}
+	
+	
+	/** Add the value from the urlPop up to the currently selected item.
+	 *  Then close the dialog.
+	 */
+	private function addUrl(evt:MouseEvent):void {
+		var oref:OntologyTermReference = termList.selectedItem as OntologyTermReference;
+		if (oref != null) {
+			oref.termURL = urlPopup.input.text;
+			termList.executeBindings(false);		
+		}
+		closeUrlPopup(evt);
+	}
+	
+	/** Close the url pop up.
+	 */
+	private function closeUrlPopup(evt:Event):void {
+		PopUpManager.removePopUp(urlPopup);
+	}
+	
+	/** Handle a click by following a URL if present, and if
+	 *  the click was in the column for the URL.
+	 */
+	private function handleURL(event:ListEvent):void {
+		var dg:DataGrid = event.currentTarget as DataGrid;
+		var rowIndex:int = event.rowIndex;
+		var colIndex:int = event.columnIndex;
+		if (colIndex == 2) {
+			var url:String = (dg.dataProvider[rowIndex] as OntologyTermReference).termURL;
+			if (url != null && url != "") {
+				var webPageURL:URLRequest = new URLRequest( url );
+  		        navigateToURL(webPageURL, 'ontology')
+			}
+		}
+	}
+  
+
+	/** Remove all ontology Id terms
+	 */
+	private function clearTerms():void {
+		myObject.ontologyIds.removeAll();
+	}
+	
+	/** Remove selected ontology term from the list of terms.
+	 */
+	private function removeTerm():void {
+		var i:int = termList.selectedIndex;
+		if (i >= 0) {
+			myObject.ontologyIds.removeItemAt(i);
+		}
+	}
+	
+	
+	// *** These next three functions should probably get moved into the 
+	//     NCBOBioPortalDialog class, so we don't have to keep repeating
+	//     them wherever we use them.
+	/** Search for terms based on the name of the current object and set
+	 *  the results into the ontologyId slot.  This will cause a pop-up dialog
+	 *  to appear for choosing the ontology search items.  The dialog will
+	 *  allow replacement or addition of terms matching a specified search
+	 *  string, which is initially the name of the object.
+	 */	 
+	private function ncboSearch():void {
+		if (ncbo == null) {
+		  	ncbo = PopUpManager.createPopUp(this.parentApplication as Application,
+		  									NCBOBioPortalDialog,
+		  									true) as NCBOBioPortalDialog;
+      		ncbo.ncbo.addEventListener(OntologySearchEvent.SET_ONTOLOGY_IDS, setTermOntologyIds);
+       		ncbo.ncbo.addEventListener(OntologySearchEvent.ADD_ONTOLOGY_IDS, addTermOntologyIds);
+  		} else {
+			PopUpManager.addPopUp(ncbo, this.parentApplication as Application, true);
+  		}
+		PopUpManager.centerPopUp(ncbo);		
+		ncbo.ncboSearch(myObject, myObject.nameValue);
+			
+		//ncbo.addEventListener("close", cancelDeleteModel);
+        //ncbo["cancelButton"].addEventListener("click", cancelDeleteModel);   
+        //popup["okButton"].addEventListener("click", confirmDeleteModel); 
+		//this.ncbo.ncboSearch(myObject.nameValue);
+	}
+    
+    /** Set the ontologyIds field to be the results of the search.
+    *   Existing values will be replaced.
+    * 
+    * @param event The event containing the search results
+    */
+    private function setTermOntologyIds(event:OntologySearchEvent):void {
+       	var results:ArrayCollection = event.searchResults;
+       	this.myObject.ontologyIds = results;
+       	termList.selectedIndex = -1;
+    }
+    
+    /** Add the results of the search to the the ontologyIds field,
+     *  keeping any existing values.
+     *  Will update any existing matching string values to new items.
+     * 
+     * @param event The event containing the search results.
+     */
+    private function addTermOntologyIds(event:OntologySearchEvent):void {
+      	for each (var id:Object in event.searchResults) {
+      		var found:Boolean = false;
+      		var toRemove:Object = null;
+      		// Look for a matching object. 
+      		// If the matching object is a string, set the toRemove variable
+      		// so we can replace it with an OntologyReference object.  This is
+      		// used to update older stored ontology links.
+      		for each (var existingId:Object in myObject.ontologyIds) {
+      			if ((id as OntologyTermReference).matches(existingId)) {
+      				found = true;
+      				if (existingId is String) toRemove = existingId;
+      				break;
+      			}
+      		}
+      		if (!found) {
+    			myObject.ontologyIds.addItem(id);
+    		} else if (toRemove != null) { // Update string to Ontology Reference
+    		    myObject.ontologyIds.removeItemAt(myObject.ontologyIds.getItemIndex(toRemove));
+    		    myObject.ontologyIds.addItem(id);
+    		}
+    	}
+    }
+	
+	
+	]]>
+</mx:Script>
+	<!-- 
+	<mx:List id="termList" height="50" width="100%" 
+		dataProvider="{myObject.ontologyIds}" 
+		change="handleTermChange(event);"
+		verticalScrollPolicy="auto"/>
+		-->
+    <mx:TileList id="termGrid" width="100%"
+    			 dataProvider="{myObject.ontologyIds}"
+    			 valueCommit="UiUtil.adjustTileSizeToFit(termGrid);"
+    			 labelField="ontologyLocalName"
+    			 height="30%"/>
+	<mx:DataGrid id="termList" height="50%" minHeight="70" width="100%" editable="true"
+		dataProvider="{myObject.ontologyIds}"
+		verticalScrollPolicy="auto">
+		<mx:columns>
+			<mx:DataGridColumn dataField="ontology" headerText="Ontology" editable="false"
+							dataTipField="ontology" showDataTips="true"/>
+			<mx:DataGridColumn dataField="ontologyLocalName" headerText="Name" editable="false"
+							dataTipField="ontologyLocalName" showDataTips="true"/>
+			<mx:DataGridColumn dataField="ontologyIdentifier" headerText="ID" editable="false"
+							dataTipField="ontologyIdentifier" showDataTips="true"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:HBox width="100%">
+		<mx:Button id="searchTermButton" label="Search" click="ncboSearch();" />
+		<mx:Spacer width="10"/>
+		<mx:Button id="removeTermButton" label="Remove" click="removeTerm();"
+			enabled="{termList.selectedIndex != -1}"/>
+		<mx:Button id="clearTermButton" label="Clear" click="clearTerms();"/>
+		<mx:Spacer width="10"/>
+	</mx:HBox>
+</mx:VBox>

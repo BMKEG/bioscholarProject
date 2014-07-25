@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: PersevereJSONForm.mxml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $ 
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $ -->
+<mx:Form xmlns:mx="http://www.adobe.com/2006/mxml" 
+		preinitialize="preinit();"
+		width="100%" height="100%">
+		
+	<mx:Script>
+    <![CDATA[
+    	import mx.core.Application;
+    	import edu.isi.bmkeg.kefed.store.DataStoreEvent;
+    	import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
+    	import edu.isi.bmkeg.kefed.store.IModelStore;
+    	import edu.isi.bmkeg.kefed.store.IDataStore;
+    	import edu.isi.bmkeg.kefed.elements.KefedExperiment;
+    	import edu.isi.bmkeg.kefed.store.json.JSONSerializer;
+        
+        import edu.isi.bmkeg.kefed.app.KefedAppEvent;
+        import edu.isi.bmkeg.kefed.app.KefedAppEventDispatcher;
+		
+		import edu.isi.bmkeg.kefed.elements.KefedObject;
+		import edu.isi.bmkeg.kefed.elements.KefedModel;	
+
+		import mx.collections.ArrayCollection;
+		import mx.controls.Alert;
+		import mx.rpc.events.FaultEvent;
+
+		[Bindable]
+		private var jsonCode:String = "";
+
+		[Bindable]
+		public var myObject:KefedObject;
+
+		[Bindable]
+		public var model:KefedModel = new KefedModel();
+
+		[Bindable]
+		public var templateList:ArrayCollection = new ArrayCollection();
+
+		[Bindable]
+		public var dataTable:ArrayCollection;
+			
+		[Bindable]
+		public var modelStore:IModelStore;
+		
+		[Bindable]
+		public var dataStore:IDataStore;
+		
+		private var toInsert:int = 0;
+		private var inserted:int = 0;
+		private var toAdd:int = 0;
+		private var added:int = 0;
+
+        public function preinit():void {
+        	modelStore.addEventListener(ModelStoreEvent.INSERT, handleInsert);
+        	modelStore.addEventListener(ModelStoreEvent.SAVE, handleSave);
+//        	modelStore.addEventListener(ModelStoreEvent.LIST, handleListModel);
+        	modelStore.addEventListener(FaultEvent.FAULT, callError);
+        	
+        	dataStore.addEventListener(DataStoreEvent.INSERT, handleInsert);
+        	dataStore.addEventListener(DataStoreEvent.SAVE, handleSave);
+        	dataStore.addEventListener(FaultEvent.FAULT, callError);
+        	
+        	modelStore.listModels();
+        }
+        
+        private function getModels(source:String):ArrayCollection {
+ 			var models:ArrayCollection = new ArrayCollection();
+	    	for each (var o:Object in JSONSerializer.deserializeJsonList(source)) {
+	    		if (o._type == "KefedExperiment") {
+	    			models.addItem(JSONSerializer.deserializeKefedExperimentFromObject(o));
+	    		} else if (o._type == "KefedModel" || o._type == null) {
+	    			models.addItem(JSONSerializer.deserializeKefedModelFromObject(o));
+	    		} else {
+	    			trace("Unknown object ", o);
+	    		}
+	    	}
+	    	return models;
+        }
+    
+	    private function checkCurrentModel():void {
+	    	var models:ArrayCollection = getModels(codeBox.text);
+			Alert.show(models.length + " " + models.toString());	
+	    }
+	    
+	    private function insertOneModel(model:Object):void {
+	    	if (model is KefedExperiment) {
+				dataStore.insertData(model as KefedExperiment);
+			} else if (model is KefedModel) {
+				modelStore.insertModel(model as KefedModel);
+			}
+	    }
+	    	    
+		private function insertModel():void {
+			var models:ArrayCollection = getModels(codeBox.text);
+			toInsert = models.length;
+			inserted = 0;
+			for each (var model:Object in models) {
+				insertOneModel(model);
+			}
+		}
+
+		private function handleInsert(e:Event):void {
+			inserted++;
+			trace("Inserted #", inserted, e.toString());
+//			Alert.show(e.toString());							
+		}
+		
+		private function saveOneModel(model:Object):void {
+			if (model is KefedExperiment) {
+				dataStore.saveData(model as KefedExperiment);
+			} else if (model is KefedModel) {
+				modelStore.saveModel(model as KefedModel);
+			}
+		}
+	
+		private function saveModel():void {
+			var models:ArrayCollection = getModels(codeBox.text);
+			toAdd = models.length;
+			added = 0;
+			for each (var model:Object in models) {
+				saveOneModel(model);
+			}
+		}
+
+		private function handleSave(e:Event):void {
+			added++;
+			trace("Saved #", added, e.toString());
+			// Alert.show(e.toString());							
+		}
+	
+		private function callError(e:FaultEvent):void {
+			trace("Error",e.message.toString());
+//			Alert.show(e.message.toString());				
+		}
+	    
+	    private function cancel():void {
+			Application.application.currentState = "Dashboard_State";				
+		}
+	    
+	    
+//		private function handleListModel(event:ModelStoreEvent):void {
+//				
+//			templateList = new ArrayCollection();
+//
+//			templateList.addItem("Template"); 				
+//			
+//			for(var i:int=0; i<event.modelList.length; i++) {
+//				var modelName:String = event.modelList[i].modelName;
+//				if(modelName != null && modelName.length > 0) {
+//					templateList.addItem(modelName);
+//				}
+//			}
+//			
+//			selectType.data = templateList;
+//			selectType.selectedItem = "Template";
+//			
+//		}
+	    
+	    
+    ]]>
+    </mx:Script>
+
+	<mx:FormHeading label="Generic Persevere Interface"/>
+	<mx:FormItem direction="horizontal" height="100%" width="100%">
+		<mx:TextArea id="codeBox" text="{this.jsonCode}" height="100%" width="100%"/> 
+	</mx:FormItem>
+	<mx:FormItem>
+		<mx:HBox>						
+			<!-- Not sure why this is even here.  It wasn't doing anything.
+			<mx:ComboBox id="selectType" dataProvider="{templateList}"/>		-->		
+			<mx:Button id="checkButton" label="Check" click="checkCurrentModel();"/>
+			<mx:Button id="insertButton" label="Insert" click="insertModel();"/>
+			<mx:Button id="saveButton" label="Save" click="saveModel();"/>
+			<mx:Button id="cancelButton" label="Cancel" click="cancel();"/>
+		</mx:HBox>
+	</mx:FormItem>
+
+</mx:Form>

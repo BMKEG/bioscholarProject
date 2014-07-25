@@ -1,0 +1,55 @@
+The BioScholar application is released under the open source MIT
+License.  The BioScholar code includes third party code and libraries
+from the following sources:
+
+  * Flare library, UC Berkley, BSD license.
+  * JGoodies Forms, Karsten Lentzsch, BSD license.
+  * Jetty Server, Apache License
+  * Kapit Diagrammer, Kap IT Labs, Community License.
+
+In particular, you must agree to the terms of the Kapit Diagrammer Free Community License.  The English version is provided below.  A combined English-French version is in the licenses directory of the installation.
+
+COMPONENT LICENSE AGREEMENT - FREE VERSION
+
+The component (hereinafter referred to as the "Software") you are about to download, including its documentation, is protected under the French intellectual property Code. Ownership of this Software is and shall remain vested in KAP IT, a French company registered under number B 483.404.570 in Evry. The Software is deposited at the French "Agence pour la Protection des Programmes". 
+
+By downloading or installing the Software, you acknowledge your understanding and acceptance of the following terms and conditions, and your authority to do so on behalf of your company (if applicable). KAP IT is only willing to grant to you the right to use the Software under these terms and conditions. 
+
+Any use or reproduction of the Software, even partially, outside of the terms and conditions expressed below, is strictly prohibited, would infringe KAP IT intellectual property rights and could result in civil and criminal prosecutions. 
+
+No right, title or interest in the Software is transferred to you by this Component License Agreement, except for the non-exclusive and non-transferable right to use the Software under the conditions and limits defined below: 
+
+1. You are authorized, for your personal use or for the internal use of your company:
+*  to make as many copies of the Software as you wish;
+*  to integrate the Software in another application if the use of such application is also limited to your personal use or to the internal use of your company.
+
+2. You cannot provide the Software to a third party, nor use it for the benefit of a third party, whether on a free or paying basis, except in the case referred to in paragraph 3.
+
+3. Despite the foregoing, you are authorized to provide the Software to a third party if the Software is integrated, in object code form only, in an application you developed (hereinafter the "Application"), subject to the following conditions:
+*  If you provide such Application as a hosted software, accessed by users over the Internet:
+
+access to the Application must be granted on a free basis; and
+you must ensure that the users of the Application are aware that this Application includes KAP IT's copyrighted Software, by reproducing our logo on the website hosting the Application, with a hyperlink to KapLab website (http://lab.kapit.fr);
+*  If you distribute such Application, on physical media or via electronic download, as a traditional licensed software:
+
+the Application must be provided to your customers on a free basis: any commercial distribution of the Application or of the Software is prohibited under this license, and requires the acquisition of a commercial license of the Software;
+the Application must be exclusively provided to your customers and your customers must be the end users of the Application;
+the license agreement of the Application must therefore prohibit the customer from granting any right of use or any right of reproduction of the Application to any third party;
+the license agreement of the Application must inform the customer that the Application includes KAP IT's copyrighted Software ; and
+you must ensure that, before any use of the Application, your customers, end users of the Application, accept and agree, in turn, to abide by the terms of the present Component License Agreement, whether in writing or by clicking on a "Yes" or "I accept" button.
+4. You are strictly prohibited from using the Software to develop any other software which would not be directly used by end users, and in particular, to develop another software component likely to compete with the Software.
+
+5. In all cases, the rights you are hereby granted on the Software relate exclusively to its executable code: you must not translate, create derivative works, decompile, disassemble, reverse-engineer or try in any other manner to obtain or deduce the source code from the executable code, except in the cases expressly provided by the French intellectual property Code and subject to prior notice to KAP IT.
+
+6. Ownership of the demonstration programs provided with the Software is and shall remain vested in KAP IT. These programs are protected in the same way as the Software. Their source code is provided for illustration purposes. You can use it in order to assist with the development of related software but you may not modify, reproduce or redistribute, even on a free basis, the source code.
+
+7. You are prohibited from deleting, removing, deactivating or concealing, in any way, the mention "powered by KAP IT" or the hyperlink to KapLab website (http://lab.kapit.fr) which appear when running the Software.
+
+8. Apart from the cases defined above, any distribution or transfer, whether on a free or paying basis, and any commercial exploitation of the Software, in whole or in part, or of any application containing the Software, in whole or in part, are strictly prohibited. 
+
+INDEMNIFICATION: KAP IT will indemnify, defend and hold you harmless from and against all damages or expenses, including reasonable court costs, related to any third party claim that the Software infringes or violates any copyright, patent or other intellectual property right of such third party; provided, however, that in such a case you will (i) provide KAP IT with prompt notice of any such claim; (ii) permit KAP IT to assume and control the defense of such action; and (iii) upon KAP IT's written request, provide to KAP IT all available information and assistance reasonably necessary for KAP IT to defend such claim. If your use of the Software is enjoined due to such infringement, then KAP IT will, at its sole option and expense, either (i) procure for you the right to continue using such Software, (ii) replace or modify such Software so that it is non-infringing and substantially equivalent in function to the enjoined Software, or (iii) refund to you the fees paid by you for such Software. 
+DISCLAIMER - LIMITATION OF LIABILITY: Without prejudice to the Indemnification rights above, the Software is provided "as is" without warranty of any kind, either expressed or implied, including, but not limited to, warranty of compatibility with any hardware, software or operating system. KAP IT does not warrant the Software will meet your requirements or that its operation will be uninterrupted, error-free or virus-free. IN NO EVENT WILL KAP IT BE LIABLE TO YOU FOR ANY DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE SOFTWARE. 
+
+ACCESS TO THE SOURCE CODE: The source code of the Software is deposited with the APP ("Agency for the Protection of Programs": official French escrow agency). According to Section 6 of APP's General Regulations, you can have access to the source code pursuant to the applicable legislation, or in case of liquidation of KAP IT. Access is only allowed after the approval of the APP's arbitration commission and does not transfer any property rights to you. 
+
+This Component License Agreement shall be governed by and construed under the laws of France. It is written in English and French: in the event of divergence between the two versions, the English document will prevail. Any dispute relating to the Software shall be subject to the exclusive jurisdiction of the Paris, France courts. 

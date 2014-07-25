@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: PowerLoom.mxml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $ 
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $ -->
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
+	label="PowerLoom">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.core.Application;
+		
+			import mx.events.ListEvent;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.controls.Alert;
+			import mx.collections.ArrayCollection;
+			import mx.rpc.soap.WebService;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.http.HTTPService;
+			
+			import edu.isi.bmkeg.utils.powerloom.PL;
+			
+			namespace plsoap = "http://www.isi.edu/powerloom/";
+			
+			public function commandResultHandler(event:ResultEvent):void {
+				clearError();
+				var xmlDoc:XML = new XML(plsoapWS.Command.lastResult);
+				commandResult.text = xmlDoc;
+			}
+			
+			public function askResultHandler(event:ResultEvent):void {
+				clearError();
+				var xmlDoc:XML = new XML(plsoapWS.Ask.lastResult);
+				askResult.text = xmlDoc.plsoap::result;
+			}
+			
+			public function retrievalResultHandler(event:ResultEvent):void {
+				clearError();
+				var xmlDoc:XML = new XML(plsoapWS.Retrieval.lastResult);
+//				trace(xmlDoc.toXMLString());
+//				trace(xmlDoc.plsoap::nresults);
+				PL.displayQueryResults(xmlDoc, retrievalResults, nAnswers);
+			}
+			
+
+			public function clearError ():void {
+				errorType.text="";
+				errorDetail.text="";
+			}
+			
+			public function faultHandler(event:FaultEvent):void {
+				errorType.text=event.fault.faultString;
+				errorDetail.text=event.fault.faultDetail;
+			}
+			]]>
+	</mx:Script>
+	
+	<mx:WebService id="plsoapWS"
+		fault="faultHandler(event);"
+		useProxy="false"
+		wsdl='{Application.application.serverUrl + "ploom/soap-wsdl/powerloom-soap-service.wsdl"}'
+		showBusyCursor="true">
+		<mx:operation name="Command"
+			resultFormat="e4x"
+			result="commandResultHandler(event);"/>
+		<mx:operation name="Ask"
+			resultFormat="e4x"
+			result="askResultHandler(event);"/>
+		<mx:operation name="Retrieval"
+			resultFormat="e4x"
+			result="retrievalResultHandler(event);"/>
+	</mx:WebService>
+			
+	<mx:HBox>
+		<mx:VBox>
+			<mx:TextInput id="moduleInput" text="EXPERIMENTS"/>
+			<mx:TextInput id="commandInput" width="100%"/>
+			<mx:Button id="doCommandButton" label="Do Command" click='PL.doCommand(plsoapWS, moduleInput.text,commandInput.text)'/>
+			<mx:TextInput id="commandResult" enabled="false" width="100%"/>
+			<mx:HRule width="100%"/>
+			<mx:TextInput id="askInput" width="100%"/>
+			<mx:Button id="doAskButton" label="Do Ask" click='PL.doAsk(plsoapWS, moduleInput.text,null,askInput.text)'/>
+			<mx:TextInput id="askResult" enabled="false"/>
+			<mx:HRule width="100%"/>
+			<mx:TextInput id="desiredAnswers" enabled="true" text="ALL"/>
+			<mx:TextArea id="retrievalInput" minWidth="640" width="100%" height="150"/>
+			<mx:Button id="doRetrievalButton" label="Do Retrieval" click='nAnswers.text = "";retrievalResults.dataProvider = null;PL.doRetrieve(plsoapWS, moduleInput.text,desiredAnswers.text,null,null,retrievalInput.text)'/>
+			<mx:Label id="nAnswers" color="black"/>
+			<mx:DataGrid  id="retrievalResults" enabled="true" minColumnWidth="300"/>
+			<mx:Label id="errorType" color="red"/>
+			<mx:TextArea id="errorDetail" color="red" editable="false" width="100%"/>
+		</mx:VBox>
+	</mx:HBox>
+</mx:Panel>

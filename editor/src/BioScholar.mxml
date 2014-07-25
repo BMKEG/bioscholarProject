@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: BioScholar.mxml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $ 
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $ -->
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:kefedUI="edu.isi.bmkeg.kefed.ui.*"
+	xmlns:persevereUI="edu.isi.bmkeg.kefed.ui.persevere.*"
+	xmlns:connectivity="edu.isi.bmkeg.domains.neuralconnectivity.*"
+	xmlns:pl="edu.isi.bmkeg.utils.powerloom.*"
+	xmlns:kapit="edu.isi.bmkeg.kefed.ui.kapit.*"
+	preinitialize="DiagramMappings.initializeMappings();"
+	initialize="init();"
+	viewSourceURL="srcview/index.html">
+    
+    <mx:XML id="configuration" source="configuration.xml"/>
+    <mx:Model id="license" source="licenses.xml"/>
+
+    <mx:Script>
+		<![CDATA[
+			import edu.isi.bmkeg.kefed.ui.UiUtil;
+			import mx.managers.IBrowserManager;
+			import mx.managers.BrowserManager;
+			import edu.isi.bmkeg.kefed.store.persevere.PersevereDataStore;
+			import edu.isi.bmkeg.kefed.store.persevere.YogoModelStore;
+			import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+			import edu.isi.bmkeg.kefed.store.IDataStore;
+			import edu.isi.bmkeg.kefed.store.IModelStore;
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.FaultEvent;
+			import mx.controls.Alert;
+			import mx.utils.URLUtil;
+		
+			import edu.isi.bmkeg.utils.Parameters;
+			import edu.isi.bmkeg.kefed.elements.KefedModel;
+			import edu.isi.bmkeg.kefed.elements.KefedObject;
+			import edu.isi.bmkeg.kefed.ui.kapit.DiagramMappings;    
+        	import com.kapit.diagram.library.SVGAssetLibrary;
+			import edu.isi.bmkeg.kefed.app.KefedAppEventDispatcher;
+			import edu.isi.bmkeg.kefed.app.KefedAppEvent;
+
+			import edu.isi.bmkeg.kefed.ontology.OntologySearchEvent;
+			import edu.isi.bmkeg.kefed.ontology.bioportal.NCBOBioPortalInterface;
+		
+			[Bindable]
+			public var serverUrl:String;
+			
+			[Bindable]
+			public var modelStore:IModelStore = null;
+			
+			[Bindable]
+			public var schemaStore:IModelStore = null;
+			
+			[Bindable]
+			public var dataStore:IDataStore = null;
+			
+			[Bindable]
+			private var jsonFormModelStore:IModelStore = null;
+			
+			[Bindable]
+			private var jsonFormDataStore:IDataStore = null;
+				          			
+			public var config:Parameters;
+			public var model:KefedModel;
+			public var eventDispatcher:KefedAppEventDispatcher = new KefedAppEventDispatcher;
+			public var lib:SVGAssetLibrary;
+			
+			private var version:String = "$Revision: 38 $";
+			private var nbco:NCBOBioPortalInterface = new NCBOBioPortalInterface(); 
+			public var ontologyList:ArrayCollection = new ArrayCollection();
+			public var selectedOntologies:Array = new Array();
+
+			private function init():void {
+				UiUtil.agreeToLicense(license.key, license.license);
+				if (serverUrl==null) {
+					serverUrl = URLUtil.getProtocol(this.url) + "://"
+				 	         + URLUtil.getServerNameWithPort(this.url) + "/";
+				}
+				trace(this.name + " serverURL = " + serverUrl);
+				config = new Parameters(configuration);
+				
+				// Setup the URLs for the various persistent storage mechanisms.
+				// Since the schemaStore is optional, it gets a null default value.
+				var modelStoreUrl:String = config.getValue("modelStoreUrl", "persevere/KefedModel");
+				var schemaStoreUrl:String = config.getValue("schemaStoreUrl", null);
+				var dataStoreUrl:String = config.getValue("dataStoreUrl", "persevere/KefedModel");
+				
+				modelStoreUrl = URLUtil.getFullURL(serverUrl, modelStoreUrl);
+				modelStore = new PersevereModelStore(modelStoreUrl);
+				jsonFormModelStore = new PersevereModelStore(modelStoreUrl);
+				if (schemaStoreUrl != null) {
+					schemaStoreUrl = URLUtil.getFullURL(serverUrl, schemaStoreUrl);
+					schemaStore = new YogoModelStore(schemaStoreUrl);
+				}
+				dataStoreUrl = URLUtil.getFullURL(serverUrl, dataStoreUrl);
+				dataStore = new PersevereDataStore(dataStoreUrl);
+				jsonFormDataStore = new PersevereDataStore(dataStoreUrl);
+
+				//  Setup up webservice for NCBO ontology lookup
+				nbco.addEventListener(OntologySearchEvent.LIST_ONTOLOGIES, ncboListOntologiesEventHandler);
+				nbco.addEventListener(FaultEvent.FAULT, FaultEventHandler);					
+				nbco.ncboListOntologies();
+				
+				currentState = "Dashboard_State";
+				Application.application.setFocus();
+			}
+			
+			private function ncboListOntologiesEventHandler(event:OntologySearchEvent):void {			
+                this.ontologyList = event.searchResults;
+                this.eventDispatcher.dispatchBioScholarEvent(KefedAppEvent.ONTOLOGY_LIST_LOADED);
+	  		}	
+			
+			private function FaultEventHandler(event:FaultEvent):void {
+				Alert.show(event.message.toString());				
+			}
+			
+			public function getOntologyList():String {
+				var separator:String = "";
+				var s:String = "All";
+				if (selectedOntologies.length > 0) {
+					s = "";
+					for each (var ontology:Object in selectedOntologies) {
+						s += separator + ontology.abbreviation;
+						separator = ", ";
+					}
+				}
+				return s;
+			}
+
+		]]>
+	</mx:Script>
+
+	<mx:states>
+	
+		<mx:State name="Dashboard_State">
+			<mx:RemoveChild target="{information}"/>
+			<mx:AddChild relativeTo="{top}">
+				<kefedUI:InventoryComponent label="Dashboard" id="inventory" height="100%" width="100%"
+					modelStore="{modelStore}" dataStore="{dataStore}" schemaStore="{schemaStore}"/>
+			</mx:AddChild>	
+		</mx:State>
+	
+		<mx:State name="Design_State">
+			<mx:RemoveChild target="{information}"/>
+			<mx:AddChild relativeTo="{top}">
+				<kefedUI:DesignerComponent label="Design" id="designer" height="100%" width="100%"/>
+			</mx:AddChild>	
+		</mx:State>
+	
+		<mx:State name="ExperimentData_State">
+			<mx:RemoveChild target="{information}"/>
+			<mx:AddChild relativeTo="{top}">
+				<kefedUI:SpreadsheetComponent label="Data" id="spreadsheet" height="100%" width="100%"/>
+			</mx:AddChild>	
+		</mx:State>
+
+		<mx:State name="JSONform">
+			<mx:RemoveChild target="{information}"/>
+			<mx:AddChild relativeTo="{top}">
+				<persevereUI:PersevereJSONForm label="json" id="json" height="100%" width="100%"
+					modelStore="{jsonFormModelStore}" dataStore="{jsonFormDataStore}"/>
+			</mx:AddChild>	
+		</mx:State>
+	
+	<!--  This is broken.  It needs updating to new data storage scheme, so it is 
+		   disabled for now.
+		<mx:State name="Batch_State">
+			<mx:RemoveChild target="{information}"/>
+			<mx:AddChild relativeTo="{top}">
+				<persevereUI:PersevereDataForm label="batch" id="batch" height="100%" width="100%"/>
+			</mx:AddChild>	
+		</mx:State>
+     -->
+		
+		<mx:State name="Connectivity_State">
+			<mx:RemoveChild target="{information}"/>
+			<mx:AddChild relativeTo="{top}">
+				<connectivity:NeuralConnectivity label="connectivity" id="connectivity" height="100%" width="100%"/>
+			</mx:AddChild>	
+		</mx:State>
+		
+		<mx:State name="PowerLoomForm">
+			<mx:RemoveChild target="{information}"/>
+			<mx:AddChild relativeTo="{top}">
+				<pl:PowerLoom label="powerloom" id="powerloom" height="100%" width="100%"/>
+			</mx:AddChild>	
+		</mx:State>
+
+	</mx:states>
+
+	<mx:VBox id="top" height="100%" width="100%">
+  	  <kefedUI:CreditBox id="information" height="100%" width="100%"
+	   	  	 componentName="BioScholar"/>
+	</mx:VBox>
+			
+</mx:Application>

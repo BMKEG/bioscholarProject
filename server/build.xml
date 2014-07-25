@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: build.xml 54 2011-07-06 22:57:37Z taruss2000@gmail.com $
+  Build script for constructing the KEfED editor server application and
+  packaging it as a set of executables and installers.
+
+  Contains the following targets:
+    compile     - compiles the basic Java server.
+    app         - generate executables for Linux, MacOS and Windows
+    dist        - compile files, generate executables and builds distribution directories.
+    doc         - generate javadoc files for server
+    installer   - dist and doc and generates installers for the distributions
+    clean       - remove all compiled files, war file and generated documentation
+
+  Requires that the LAUNCH4J_HOME variable be set to the location of the Launch4J 
+  installation directory.
+  -->
+<project name="KEfED App Builder" basedir="." default="installer">
+    <property environment="host"/>
+    <fail unless="host.LAUNCH4J_HOME">LAUNCH4J_HOME environment variable needs to be set to the launch4j directory.</fail>
+
+    <property name="LAUNCH4J_HOME" value="${host.LAUNCH4J_HOME}"/>
+    <property name="APP" value="BioScholarServer"/>
+    <property name="SHORT_NAME" value="BioScholar"/>
+    <property name="VERSION" value="1.0.4"/>
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml"
+	     classpath="${basedir}/ant/lib/ant-contrib.jar"/>
+    <taskdef name="jarbundler"
+	     classname="net.sourceforge.jarbundler.JarBundler"
+	     classpath="${basedir}/ant/lib/jarbundler-2.2.0.jar"/>
+    <taskdef name="launch4j"
+	     classname="net.sf.launch4j.ant.Launch4jTask"
+	     classpath="${LAUNCH4J_HOME}/launch4j.jar:${LAUNCH4J_HOME}/lib/xstream.jar"/>
+    <taskdef name="IzPack"
+	     classname="com.izforge.izpack.ant.IzPackTask"
+	     classpath="${basedir}/ant/lib/standalone-compiler.jar"/>
+    <property name="CREATOR" value="University of Southern California"/>
+    <property name="APP_URL" value="https://wiki.birncommunity.org/display/NEWBIRNCC/BioScholar"/>
+    <property name="SRC_DIR" location="src"/>
+    <property name="BIN_DIR" location="bin"/>
+    <property name="BUILD_DIR" location="build"/>
+    <property name="DIST_DIR" location="dist"/>
+    <property name="INSTALLER_DIR" location="${DIST_DIR}/installers"/>
+    <!-- Need both the name and and the location properties for these items,
+	 so we can copy the directory and preserve the relative name. -->
+    <property name="LIB_DIR_NAME" value="lib"/>
+    <property name="LIB_DIR" location="${LIB_DIR_NAME}"/>
+    <property name="WEBAPPS_DIR_NAME" value="webapps"/>
+    <property name="WEBAPPS_DIR" location="${WEBAPPS_DIR_NAME}"/>
+    <property name="LICENSE_DIR_NAME" value="licenses"/>
+    <property name="LICENSE_DIR" location="${LICENSE_DIR_NAME}"/>
+    <property name="DOC_DIR" location="doc"/>
+    <property name="MAINCLASS" value="edu.isi.bmkeg.kefed.server.KefedJettyServer"/>
+    <property name="OS_LIST" value="linux,macos,windows"/>
+   <!-- Mac only.  Derive from next property instead.
+       <property name="JVM_VERSION" value="1.6+"/> -->
+    <property name="JVM_MIN_VERSION" value="1.6.0"/>
+    <property name="MAX_HEAP" value="1024"/>
+    <property name="INSTALLER_HEAP" value="400"/>
+
+    <property name="APP_JAR_NAME" value="${APP}-${VERSION}"/>
+    <property name="LINUX_SCRIPT_NAME" value="run_${APP}" />
+ 
+    <path id="lib.jars">
+      <fileset dir="${LIB_DIR}" includes="**/*.jar"/>
+    </path>
+
+    <target name="init">
+      <tstamp>
+	<format property="YEAR" pattern="yyyy"/>
+      </tstamp>
+      <!--  <echoproperties/> -->
+    </target>
+
+    <target name="compile" depends="init">
+      <mkdir dir="${BIN_DIR}"/>
+      <javac srcdir="${SRC_DIR}"
+	     destdir="${BIN_DIR}"
+	     classpathref="lib.jars"
+	     includeAntRuntime="false"/>
+    </target>
+
+    <target name="jar" depends="compile">
+      <manifestclasspath property="mf.classpath"
+			 jarfile="${basedir}/${APP_JAR_NAME}.jar">
+	<classpath refid="lib.jars" />
+      </manifestclasspath>
+  
+      <mkdir dir="${BUILD_DIR}"/>
+      <manifest file="${BUILD_DIR}/MANIFEST.MF">
+	<attribute name="Main-Class" value="${MAINCLASS}"/>
+	<attribute name="Class-Path" value="${mf.classpath}"/>
+      </manifest>
+      <jar basedir="${BIN_DIR}" manifest="${BUILD_DIR}/MANIFEST.MF" destfile="${BUILD_DIR}/${APP_JAR_NAME}.jar"/>
+    </target>
+
+    <target name="app" depends="jar">
+      <for param="os" list="${OS_LIST}" keepgoing="true">
+	<sequential>
+	  <mkdir dir="${DIST_DIR}/@{os}"/>
+	</sequential>
+      </for>
+
+      <echo message="Building Mac Application"/>
+      <!-- Need to build this in the dist directory, because copying
+           the .app bundle will result in incorrect file permissions.
+	   (The ant copy task doesn't preserve unix file permissions). -->
+      <jarbundler dir="${DIST_DIR}/macos"
+		  name="${APP}"
+		  mainclass="${MAINCLASS}"
+		  jvmversion="${JVM_MIN_VERSION}+"
+		  shortname="${SHORT_NAME}"
+		  stubfile="${LIB_DIR}/JavaApplicationStub"
+		  icon="${basedir}/icons/application.icns"
+		  vmoptions="-Xmx${MAX_HEAP}m"
+		  version="${VERSION}">
+	<javaproperty name="apple.awt.showGrowBox" value="true"/>
+	<javaproperty name="apple.laf.useScreenMenuBar" value="true"/>
+	<jarfilelist dir="${BUILD_DIR}" files="${APP_JAR_NAME}.jar"/>
+	<jarfileset dir="${LIB_DIR}">
+	  <include name="**/*.jar" />
+	  <exclude name="**/.svn" />
+	</jarfileset>
+      </jarbundler>
+
+      <echo message="Building Windows Application"/>
+      <launch4j>
+	<config headerType="gui"
+		outfile="${DIST_DIR}/windows/${APP}.exe"
+	        jarPath="${BUILD_DIR}/${APP_JAR_NAME}.jar"
+		icon="${basedir}/icons/application.ico"
+		chdir=".">
+	  <classPath mainClass="${MAINCLASS}">
+	    <cp>${LIB_DIR_NAME}/*.jar</cp>
+	  </classPath>
+	  <jre minVersion="${JVM_MIN_VERSION}" maxHeapSize="${MAX_HEAP}"/>
+	</config>
+      </launch4j>
+
+      <echo message="Building Linux Script"/>
+      <concat destfile="${DIST_DIR}/linux/${LINUX_SCRIPT_NAME}">
+#! /bin/sh 
+java -Xmx${MAX_HEAP}m -jar ${APP_JAR_NAME}.jar
+      </concat>
+      <!-- chmod might not work for building on windows!
+      But the installer should be able to take care of it. -->
+      <chmod file="${DIST_DIR}/linux/${LINUX_SCRIPT_NAME}" perm="755"/>
+
+    </target>
+
+    <target name="dist" depends="app">
+      <!-- Stage common files here. -->
+      <copy todir="${DIST_DIR}/common/${WEBAPPS_DIR_NAME}"
+	    preservelastmodified="true">
+	<fileset dir="${WEBAPPS_DIR}" excludes="**/.svn"/>
+      </copy>
+      <copy todir="${DIST_DIR}/common/${LICENSE_DIR_NAME}"
+	    preservelastmodified="true">
+	<fileset dir="${LICENSE_DIR}" excludes="**/.svn"/>
+      </copy>
+      <copy todir="${DIST_DIR}/common" file="${basedir}/README.text"
+	    preservelastmodified="true"/>
+
+      <for param="os" list="${OS_LIST}" keepgoing="true">
+	<sequential>
+	  <copy todir="${DIST_DIR}/@{os}"
+		preservelastmodified="true">
+	    <fileset dir="${DIST_DIR}/common"/>
+	  </copy>
+	</sequential>
+      </for>
+
+      <copy todir="${DIST_DIR}/windows/${LIB_DIR_NAME}"
+	    preservelastmodified="true">
+       <fileset dir="${LIB_DIR}" excludes="JavaApplicationStub"/>
+      </copy>
+
+      <copy todir="${DIST_DIR}/linux/${LIB_DIR_NAME}"
+	    preservelastmodified="true">
+        <fileset dir="${LIB_DIR}" excludes="JavaApplicationStub"/>
+      </copy>
+      <copy todir="${DIST_DIR}/linux" file="${BUILD_DIR}/${APP_JAR_NAME}.jar"
+	    preservelastmodified="true"/>
+
+    </target>
+
+    <target name="doc" depends="init"
+	    description="Generate the JavaDoc for the Server code.">
+      <mkdir dir="${DOC_DIR}/server/javadoc"/>
+      <javadoc packagenames="edu.*"
+           sourcepath="${SRC_DIR}"
+           defaultexcludes="yes"
+           destdir="${DOC_DIR}/javadoc"
+           author="true"
+           version="true"
+           use="true"
+	   maxmemory="500m"
+	   classpathref="lib.jars"
+           windowtitle="${APP} API">
+	<doctitle><![CDATA[<h1>Test</h1>]]></doctitle>
+	<bottom><![CDATA[<i>Copyright &#169; ${YEAR} ${CREATOR}. All Rights Reserved.</i>]]></bottom>
+	<tag name="date" scope="all" description="Date:"/>
+	<tag name="todo" scope="all" description="To do:"/>
+	<link href="http://download.oracle.com/javase/6/docs/api/"/>
+      </javadoc>
+    </target>
+
+    <target name="installer" depends="dist,doc">
+      <mkdir dir="${INSTALLER_DIR}"/>
+      <!-- TODO: Add ability to include the source and doc files in the installation
+           as well.  This should include both server (easy) and client files (needs
+	   to be worked out).  The issue with the client is figuring out if we need
+	   to have a separate copy to maintain version control.  Right now we do that
+	   with the *.war files, so it should likely be done with the source and doc
+	   files as well so that they stay in sync.  We need to figure out a good
+	   automated way to do this.
+	   When that is done, we can include the following optional packs in each one:
+        <pack name="Docs" required="no">
+            <description>The documentation</description>
+            <fileset dir="doc" targetdir="$INSTALL_PATH/doc/server"/>
+            <fileset dir="client-doc" targetdir="$INSTALL_PATH/doc/client"/>
+        </pack>
+        <pack name="Sources" required="no">
+            <description>The sources</description>
+            <fileset dir="src" targetdir="$INSTALL_PATH/src/server"/>
+            <fileset dir="client-src" targetdir="$INSTALL_PATH/src/client"/>
+        </pack>
+	-->
+
+      <IzPack output="${INSTALLER_DIR}/install-${APP_JAR_NAME}.jar"
+	      installerType="standard"
+	      basedir="${basedir}">
+	<config><![CDATA[
+<installation version="1.0">
+<!-- Installation file for the server application.
+     Derived from the base install.xml file from IzPack.
+
+     Used in conjunction with the ant task.
+     We use this embedded form so we can share ant variables.
+-->
+    <!-- 
+        The info section.
+        The meaning of the tags should be natural ...
+    -->
+    <info>
+        <appname>@{APP}</appname>
+        <appversion>1.0</appversion>
+        <authors>
+	  <author name="@{CREATOR}" email=""/>
+	<!--
+            <author name="Gully Burns" email="gully@isi.edu"/>
+            <author name="Thomas Russ" email="tar@isi.edu"/>
+	    -->
+        </authors>
+        <url>@{APP_URL}</url>
+	<uninstaller>Uninstall @{APP}</uninstaller>
+	<javaversion>1.5.0</javaversion>
+	<run-privileged condition="izpack.windowsinstall.vista|izpack.macinstall"/>
+    </info>
+
+
+    <native type="izpack" name="ShellLink.dll"/>
+    <native type="izpack" name="ShellLink_x64.dll"/>
+
+    <!-- 
+        The gui preferences indication.
+        Sets the installer window to 640x480. It will not be able to change the size.
+    -->
+    <guiprefs width="640" height="480" resizable="yes"/>
+
+    <!-- 
+        The locale section.
+        Asks here to include the English and French langpacks.
+	-->
+    <locale>
+        <langpack iso3="eng"/>
+<!--        <langpack iso3="fra"/> -->
+    </locale>
+
+    <!-- 
+        The resources section.
+        The ids must be these ones if you want to use the LicencePanel and/or the InfoPanel.
+    -->
+    <variables>
+      <variable name="APP_NAME" value="@{APP}"/>
+    </variables>
+    <resources>
+        <res id="LicencePanel.licence" src="licenses/main-license.text" parse="no"/>
+        <res id="InfoPanel.info" src="README.text" parse="no"/>
+	<res id="shortcutSpec.xml" src="default-shortcut-spec.xml" parse="yes"/>
+	<res src="icons/installer.png" id="Installer.image.0"/>
+    </resources>
+
+    <!-- 
+        The panels section.
+        We indicate here which panels we want to use. The order will be respected.
+    -->
+    <panels>
+     <!--   <panel classname="HelloPanel"/> -->
+        <panel classname="InfoPanel"/>
+        <panel classname="LicencePanel"/>
+        <panel classname="TargetPanel"/>
+        <panel classname="PacksPanel"/>
+	<panel classname="ShortcutPanel"/>
+	<panel classname="InstallPanel"/>
+        <panel classname="SimpleFinishPanel"/>
+    </panels>
+
+    <!-- 
+        The packs section.
+        We specify here our packs.
+    -->
+    <packs>
+        <pack name="Application" required="yes">
+	  <description>The main application</description>
+	  <!-- Common files -->
+	  <fileset dir="dist/common"
+		   targetdir="$INSTALL_PATH"/>
+	  <!-- Library files for Linux & Windows.  Already packaged in Mac -->
+	  <fileset dir="@{LIB_DIR_NAME}" excludes="JavaApplicationStub"
+	           targetdir="$INSTALL_PATH/@{LIB_DIR_NAME}"
+		   condition="izpack.linuxinstall|izpack.windowsinstall"/>
+	  <!-- Specific applications -->
+	  <!-- Linux -->
+	  <file src="dist/linux/@{APP_JAR_NAME}.jar"
+		targetdir="$INSTALL_PATH" 
+		condition="izpack.linuxinstall"/>
+	  <file src="dist/linux/@{LINUX_SCRIPT_NAME}"
+		targetdir="$INSTALL_PATH" 
+		condition="izpack.linuxinstall"/>
+	  <executable targetfile="$INSTALL_PATH/@{LINUX_SCRIPT_NAME}"
+		      condition="izpack.linuxinstall"/>
+	  <!-- MacOS -->
+	  <fileset dir="dist/macos/@{APP}.app" 
+                   targetdir="$INSTALL_PATH/@{APP}.app"
+		   condition="izpack.macinstall"/>
+         <executable targetfile="$INSTALL_PATH/@{APP}.app/Contents/MacOS/JavaApplicationStub"
+	           condition="izpack.macinstall"/>
+	  <!-- Windows -->
+	  <file src="dist/windows/@{APP}.exe"
+		   targetdir="$INSTALL_PATH" 
+		   condition="izpack.windowsinstall"/>
+	</pack>
+    </packs>
+</installation>
+]]>
+	</config>
+      </IzPack>
+
+      <!-- Now we package the installers up to be native applications as well -->
+      <!-- Mac native installer -->
+      <echo message="Building Mac Native Installer"/>
+       <jarbundler dir="${INSTALLER_DIR}"
+		  name="Install${APP}-${VERSION}"
+		  mainclass="com.izforge.izpack.installer.Installer"
+		  jvmversion="1.5.0+"
+		  shortname="Installer"
+		  stubfile="${LIB_DIR}/JavaApplicationStub"
+		  icon="${basedir}/ant/icons/izpack.icns"
+		  vmoptions="-Xmx${INSTALLER_HEAP}m"
+		  version="${VERSION}">
+	<javaproperty name="apple.awt.showGrowBox" value="true"/>
+	<javaproperty name="apple.laf.useScreenMenuBar" value="true"/>
+	<javaproperty name="file.encoding" value="UTF-8"/>
+	<jarfilelist dir="${INSTALLER_DIR}" files="install-${APP_JAR_NAME}.jar"/>
+      </jarbundler>
+      <!-- A .dmg would be better, but this is more portable. -->
+      <zip destfile="${INSTALLER_DIR}/Install${APP}-${VERSION}-Mac.zip">
+	<zipfileset dir="${INSTALLER_DIR}/Install${APP}-${VERSION}.app" prefix="Install${APP}-${VERSION}.app" filemode="755"/>
+      </zip>
+
+      <!-- Windows native installer -->
+      <echo message="Building Windows Native Installer"/>
+      <launch4j>
+	<config headerType="gui"
+		outfile="${INSTALLER_DIR}/Install${APP}-${VERSION}-windows.exe"
+	        jarPath="${INSTALLER_DIR}/install-${APP_JAR_NAME}.jar"
+		icon="${basedir}/ant/icons/izpack.ico">
+	  
+	  <jre minVersion="1.5.0" maxHeapSize="${INSTALLER_HEAP}"/>
+	</config>
+      </launch4j>
+    </target>
+
+    <target name="clean"
+	    description="clean up" >
+      <!-- Delete the directory trees that get generated by this script. -->
+      <delete dir="${BUILD_DIR}"/>
+      <delete dir="${DIST_DIR}"/>
+      <delete dir="${DOC_DIR}/javadoc"/>
+    </target>
+</project>

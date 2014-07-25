@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: DiagramZoomHSlider.mxml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $ 
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $ -->
+<mx:HSlider xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns="edu.isi.bmkeg.kefed.ui.kapit.*"
+	minimum="0" maximum="1.7" tickInterval="1" value="1" 
+	change="zoomDiagram(event)"
+	dataTipFormatFunction="logZoomDataTip">
+	<!-- Control that implements a HSlider and controls the zoom level
+	     for a Kapit DiagramView object.  This uses a logarithmic zoom
+	     mapping. -->
+	<mx:Script>
+		<![CDATA[
+			import com.kapit.diagram.view.DiagramView;
+			import mx.controls.sliderClasses.Slider;
+			import mx.events.SliderEvent;
+			
+			[Bindable]
+			public var diagram:DiagramView = null;
+			
+			/** Compute the logarithmic zoom factor.
+			 * 
+			 * @param x The number
+			 * @return 10^x / 10
+			 */
+			 private function logZoom(x:Number):Number {
+	        	return Math.pow(10,x) / 10;
+	        }
+	        
+			/** Provide a tool tip showing the current zoom value as a scale factor
+			 * 
+			 * @param val The raw value of the zoom
+			 * @return The scaled zoom factor
+			 */
+		    private function logZoomDataTip(val:String):String {
+	        	var x:Number = new Number(val);
+	        	var y:Number = logZoom(x);
+	        	y = Math.round(10*y) / 10;
+	        	return "x" + String(y);
+	        }
+	
+			/** Zoom the diagram based on the slider control value.
+			 * 
+			 * @param event The slider change event
+			 */
+	        private function zoomDiagram(event:SliderEvent): void {
+				var currentSlider:Slider=Slider(event.currentTarget);
+				setZoom(currentSlider.value);
+	        }
+	        
+	        /** Set the zoom value and zoom the diagram.  The zoomLevel
+	         *  is set logarithmically.
+	         * 
+	         *  @param zoomLevel The new zoom leve to set.
+	         */
+	        public function setZoom(zoomLevel:Number):void {
+	        	value = zoomLevel;
+	        	var z:Number = logZoom(zoomLevel);
+	        	diagram.centeredZoom(z, false);
+	        }
+		]]>
+	</mx:Script>
+</mx:HSlider>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: ViewStackDemo.mxml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $ 
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $ -->
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:local="edu.isi.bmkeg.kefed.ui.*" initialize="init();">
+    
+    <mx:Script>
+		<![CDATA[
+		
+			import mx.utils.URLUtil;
+			
+			import edu.isi.bmkeg.kefed.elements.KefedModel;
+			import edu.isi.bmkeg.kefed.app.KefedAppEventDispatcher;
+	
+			public var serverUrl:String;
+			
+			public var model:KefedModel;
+			public var eventDispatcher:KefedAppEventDispatcher = new KefedAppEventDispatcher();
+			
+			private function init():void {
+				//currentState = "Inventory_State";
+				if (serverUrl==null) {
+					serverUrl = URLUtil.getProtocol(this.url) + "://"
+				 	         + URLUtil.getServerNameWithPort(this.url) + "/";
+				}
+				
+				var indepVbTupleProperties:Object = new Object();
+		
+				indepVbTupleProperties.value = true;	
+				indepVbTupleProperties["bollocks"] = "more bollocks";	
+				var cf:ClassFactory = new ClassFactory(Object);
+				cf.properties = indepVbTupleProperties;
+				var o:Object = cf.newInstance();
+				
+				var oo:Object = new Object();
+
+			}
+			
+		]]>
+	</mx:Script>
+
+	 <mx:VBox id="top" height="100%" width="100%">
+        <!-- Create a LinkBar control to navigate 
+            the ViewStack container. -->
+        <mx:LinkBar dataProvider="{myViewStack}" borderStyle="solid"/>
+
+        <!-- Define the ViewStack and the three child containers. -->
+        <mx:ViewStack id="myViewStack" 
+            borderStyle="solid" 
+            width="100%" height="100%">
+            
+            <!--<mx:Canvas id="lit" label="Sources">
+                <mx:Label text="Links to the orignal sources of data in the literature"/>
+            </mx:Canvas>-->
+
+			<local:InventoryComponent label="Inventory" id="inventory" height="100%" width="100%"/>
+
+			<local:DesignerComponent label="Design" id="designer" height="100%" width="100%"/>
+
+			<local:SpreadsheetComponent label="Data" id="spreadsheet" height="100%" width="100%"/>
+
+            <mx:Canvas id="int" label="Interpretations">
+                <mx:Label text="Summary Table"/>
+            </mx:Canvas>
+
+            <mx:Canvas id="evid" label="Evidence">
+                <mx:Label text="Explanations of which observations gave rise to which interpretations and why"/>
+            </mx:Canvas>
+        
+        </mx:ViewStack>
+    </mx:VBox>
+			
+</mx:Application>

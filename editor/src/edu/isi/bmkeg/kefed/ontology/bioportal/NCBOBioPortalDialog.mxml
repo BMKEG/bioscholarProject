@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: NCBOBioPortalDialog.mxml 50 2011-06-09 22:55:52Z taruss2000@gmail.com $ 
+     $Date: 2011-06-09 15:55:52 -0700 (Thu, 09 Jun 2011) $
+     $Revision: 50 $ -->
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns:grid="edu.isi.bmkeg.utils.CheckBoxDataGrid.*" 
+	layout="absolute" width="640" height="480" initialize="init()"
+	title="NCBO BioPortal Remote Search" showCloseButton="true" 
+	close="closeWindow(event)">
+	
+	<mx:Script>
+		<![CDATA[
+			import edu.isi.bmkeg.kefed.ui.SimpleInputWindow;
+			import edu.isi.bmkeg.kefed.elements.IKefedNamedObject;
+			import edu.isi.bmkeg.kefed.ontology.OntologyTermReference;
+			import flare.vis.operator.layout.IndentedTreeLayout;
+			import mx.controls.Alert;
+
+			import mx.collections.ArrayCollection;
+
+			import mx.core.Application;
+
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.events.FaultEvent;
+
+			import edu.isi.bmkeg.kefed.ontology.OntologySearchEvent;
+			import edu.isi.bmkeg.kefed.ontology.bioportal.NCBOBioPortalInterface;
+			
+			import edu.isi.bmkeg.utils.CheckBoxDataGrid.CheckBoxRenderer;
+
+			import mx.rpc.soap.WebService;
+			
+			import mx.rpc.http.HTTPService;
+			
+			import mx.managers.SystemManager;
+			
+			import mx.events.CloseEvent;
+			
+			import mx.managers.PopUpManager;			
+
+			import com.adobe.serialization.json.JSON;
+						
+			public var ncbo:NCBOBioPortalInterface = new NCBOBioPortalInterface(); 
+
+			[Bindable]
+			private var exact:Boolean = false; 
+
+			[Bindable]
+			private var prop:Boolean = false; 
+
+			[Bindable]
+			private var kefedObj:IKefedNamedObject;
+			
+			[Bindable]
+			private var currentSearchTerm:String = "";
+			
+			[Bindable]
+			private var currentSearchResults:ArrayCollection = new ArrayCollection();
+			
+			private function init():void {
+				ncbo.addEventListener(OntologySearchEvent.FIND_ONTOLOGY_TERMS, ncboSearchResultEventHandler);
+				ncbo.addEventListener(FaultEvent.FAULT, FaultEventHandler);	
+				searchInput.addEventListener(KeyboardEvent.KEY_UP, keyHandler);
+				ontologyListLabel.text = Application.application.getOntologyList();
+				termListLabel.text = "";
+			}
+			
+			  private function keyHandler(event:KeyboardEvent):void {
+    			if (event.keyCode == Keyboard.ENTER) {
+       				ncboSearchButtonClick();
+     			}
+   			}
+			
+			private function changeTerm():void {
+				this.currentSearchTerm = searchInput.text;
+			}
+			
+			private function ncboSearchButtonClick():void {
+				searchButton.enabled=false;
+				this.exact = Boolean(this.exactControl.selectedValue);
+				this.prop = this.propControl.selected;
+				this.ncboSearch(this.kefedObj, this.searchInput.text);
+			}			
+			
+			public function ncboSearch(kefedObject:IKefedNamedObject, search:String):void {
+				this.currentSearchTerm = search;
+				this.kefedObj = kefedObject;
+				termListLabel.text = "";
+				ncbo.search(kefedObj, search, exact, prop);
+				
+				// need to make sure that the active terms are selected
+				
+			}		
+
+			private function cancelButton():void {
+				ncbo.cancel()
+				searchButton.enabled=true;
+				mx.managers.PopUpManager.removePopUp(this);
+			}
+						
+			private function closeWindow(event:CloseEvent):void {
+				cancelButton();
+	        }
+	        
+	        private function processData(eventType:String):void {
+	        	var res:ArrayCollection = new ArrayCollection();	    	
+	        	for each( var i:Object in dg.selectedItems) {
+	        		var item:OntologyTermReference = new OntologyTermReference(i.ontologyDisplayLabel,
+												      	  					   i.conceptId,
+												          					   i.preferredName);
+					item.termURL = i.url;
+					res.addItem(item);
+	        	}
+	        	if (res.length > 0) {
+		        	var event:OntologySearchEvent = new OntologySearchEvent(eventType, res);
+	        		ncbo.dispatchEvent(event);
+	        	}
+				mx.managers.PopUpManager.removePopUp(this);
+	        }
+	        
+			private function ncboSearchResultEventHandler(event:OntologySearchEvent):void {
+			
+                this.currentSearchResults = event.searchResults;
+                
+				var a:Array = new Array();
+				for( var i:int=0; i<currentSearchResults.length; i++) {
+					if(currentSearchResults[i].selected) {
+						a.push(i);
+					}
+				}
+				dg.selectedIndices = a;
+				updateTermListLabel();
+				searchButton.enabled=true;
+
+	  		}
+
+			private function updateTermListLabel():void {
+				var s:String = "";
+				for( var i:int=0; i<dg.selectedItems.length; i++) {
+					if(i>0)
+						s += ", ";
+					s += dg.selectedItems[i].conceptId;
+				}
+				
+				termListLabel.text = s;
+			}
+	    	
+			private function FaultEventHandler(event:FaultEvent):void {
+				Alert.show(event.message.toString());	
+				searchButton.enabled=true;
+			}
+			
+
+		]]>
+	</mx:Script>
+
+	<mx:VDividedBox width="100%" height="100%">
+		
+		<mx:Panel title="Search Ontologies" width="100%" height="45%">
+			
+			<mx:VBox width="100%" height="100%" 
+					paddingLeft="10" paddingBottom="10" paddingRight="10" paddingTop="10">
+				
+						<mx:RadioButtonGroup id="exactControl" selectedValue="{exact}" />
+						<mx:HBox width="100%" height="100%">
+							<mx:TextInput id="searchInput" text="{currentSearchTerm}" change="changeTerm();"/>
+							<mx:Button id="searchButton" label="Search" click="ncboSearchButtonClick();"/>
+						 	<mx:RadioButton label="contains" value="false" group="{exactControl}"/>
+							<mx:RadioButton label="exact match" value="true" group="{exactControl}"/>
+							<mx:CheckBox id="propControl" label="Include properties?"/>
+						</mx:HBox>
+						
+						<mx:TextArea id="ontologyListLabel" width="100%" /> 
+										
+			</mx:VBox>
+			
+		</mx:Panel>
+		
+		<mx:Panel title="Terminology" width="100%" height="100%">
+		
+			<grid:CheckBoxDataGrid id="dg" dataProvider="{currentSearchResults}" width="100%" height="100%" editable="false"
+						allowMultipleSelection="true" change="updateTermListLabel();" >
+				<grid:columns>
+					<mx:DataGridColumn dataField="conceptId" headerText=" " width="20" sortable="true" editable="false"
+						itemRenderer="edu.isi.bmkeg.utils.CheckBoxDataGrid.CheckBoxRenderer" showDataTips="false"/> 
+					<mx:DataGridColumn dataField="ontologyDisplayLabel" headerText="Ontology Name" editable="false" showDataTips="true"/>
+					<mx:DataGridColumn dataField="preferredName" headerText="Preferred Name" editable="false" showDataTips="true"/>
+					<mx:DataGridColumn dataField="conceptId" headerText="Concept Id" editable="false" showDataTips="true"/>
+				</grid:columns>
+			</grid:CheckBoxDataGrid>
+		
+			<mx:HBox width="100%" 					
+				paddingLeft="10" paddingBottom="10" paddingRight="10" paddingTop="10">
+				<mx:TextArea id="termListLabel" width="100%" />
+				<mx:HBox>
+					<mx:Button label="Set" click="processData(OntologySearchEvent.SET_ONTOLOGY_IDS);"/>
+					<mx:Button label="Add" click="processData(OntologySearchEvent.ADD_ONTOLOGY_IDS);"/>
+					<mx:Button label="Cancel" click="cancelButton();"/>
+				</mx:HBox>
+			</mx:HBox>	 
+		
+		</mx:Panel>
+		
+			
+	</mx:VDividedBox>
+	
+	
+</mx:TitleWindow >

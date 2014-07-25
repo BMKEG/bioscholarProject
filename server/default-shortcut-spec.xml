@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts>
+  <skipIfNotSupported/>
+  <defaultCurrentUser/>
+  <programGroup defaultName="BMKEG"
+		location="startMenu"/>
+  <!-- To add:
+  	iconFile="$INSTALL_PATH\Path\to\MyApplication\Icons\start.ico"
+	iconIndex="0"
+	-->
+  <shortcut
+      name="Start $APP_NAME"
+      target="$INSTALL_PATH\${APP_NAME}.exe"
+      commandLine=""
+      workingDirectory="$INSTALL_PATH\"
+      description="This starts $APP_NAME"
+      initialState="normal"
+      programGroup="yes"
+      desktop="yes"
+      applications="no"
+      startMenu="yes"
+      startup="no">
+    <createForPack name="Application"/>
+  </shortcut>
+  <!-- 
+       iconFile="$INSTALL_PATH\images\uninstall.ico"
+       iconIndex="0"
+  -->
+  <shortcut
+      name="Uninstall $APP_NAME"
+      target="$INSTALL_PATH\Uninstaller\uninstaller.jar"
+      commandLine=""
+      workingDirectory="$INSTALL_PATH\Uninstaller"
+      description="$APP_NAME will be completely Uninstalled"
+      initialState="noShow"
+      programGroup="yes"
+      desktop="no"
+      applications="no"
+      startMenu="no"
+      startup="no">
+    <createForPack name="Application"/> 
+  </shortcut>
+</shortcuts>
+
+

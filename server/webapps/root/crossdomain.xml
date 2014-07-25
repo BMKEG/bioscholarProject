@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE cross-domain-policy SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
+
+<cross-domain-policy>
+	<site-control permitted-cross-domain-policies="master-only"/>
+	<!-- Secure is false so that an https-served client can access http services from other places. -->
+	<allow-access-from domain="*"/>
+	<allow-http-request-headers-from domain="*" headers="SOAPAction"/>
+</cross-domain-policy>

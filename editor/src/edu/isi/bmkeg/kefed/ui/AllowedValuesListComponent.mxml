@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: AllowedValuesListComponent.mxml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $ 
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $ -->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	height="100%" width="100%"
+	creationComplete="initComponent(event)">
+	<!-- Component for entering list information.
+	
+	Takes allowedValues property which should be an ArrayCollection that is to
+	hold the list that is being edited by this component.  Also takes a boolean
+	value which specifies if additional values are allowed.
+	
+	TODO:  Allow drag & drop rearranging of order of items.
+	TODO:  Add sort option for items.
+	-->
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.listClasses.ListBase;
+			import mx.managers.PopUpManager;
+			import mx.controls.listClasses.TileListItemRenderer;
+			import mx.utils.StringUtil;
+			import edu.isi.bmkeg.kefed.elements.KefedFullValueTemplate;
+			import edu.isi.bmkeg.kefed.ui.UiUtil;
+	import edu.isi.bmkeg.kefed.elements.KefedBaseValueTemplate;
+	import mx.collections.ArrayCollection;
+	import mx.binding.utils.BindingUtils;
+	
+	/** myType is the type description that will be modified.
+	 */
+	 [Bindable]
+	 public var myType:KefedBaseValueTemplate;
+	
+	/** allowedValues is the collection of values that are
+	 *  entered by this control
+	 */
+	[Bindable]
+	public var allowedValues:ArrayCollection;
+	
+	/** Flag that controls whether other values besides those specified
+	 *  is an option.  If false, then the allow other values checkbox
+	 *  will not be displayed and that item cannot be changed.
+	 */
+	[Bindable]
+	public var allowOtherValues:Boolean = true;
+	
+	/** allowOtherValuesFlagName is the name is of the flag field on myType
+	 *  that records whether other values should be allowed for this collection.
+	 *  It needs to be specified this way to allow updating through the
+	 *  myType variable, since Boolean values aren't mutable.
+	 */
+	[Bindable]
+	public var allowOtherValuesFlagName:String;
+	
+	/** Monotonic controls whether only monotonic changes are allowed
+	 *  or whether all changes are allowed.  Monotonic changes only 
+	 *  allow additional values to be added to the allowed values or
+	 *  allowed units sections.  Removal of values are
+	 *  prohibited when monotonic is <code>true</code>
+	 */
+	[Bindable]
+	public var monotonic:Boolean = false;
+	
+	/** Flag that indicates whether this can be an ordered list
+	 *  of items.  If true, then the items are in order and
+	 *  controls for moving the order will be included.
+	 */
+	 [Bindable]
+	 public var orderAllowed:Boolean = false;
+	
+	private var inputDialog:StringInputDialog = null;
+	
+	private function initComponent(evt:Event):void {
+        newValue.addEventListener(KeyboardEvent.KEY_UP, keyHandler);
+        handleListItemSelection(evt);
+    }
+    
+    /** Handle change in checkbox value by setting field appropriately.
+ 	 *
+	 * @param evt The event
+     */
+     private function changeAllowOthers(evt:Event):void {
+     	var cbox:CheckBox = evt.target as CheckBox;
+     	myType[allowOtherValuesFlagName] = cbox.selected;
+     	if (cbox.selected) {
+     		orderedBox.selected = false;
+     		orderedBox.enabled = false;
+     	} else {
+     		orderedBox.enabled = true;
+     	}
+     }
+     
+    /** Handle change in checkbox value by setting field appropriately.
+ 	 *
+	 * @param evt The event
+     */
+     private function changeOrdered(evt:Event):void {
+     	var cbox:CheckBox = evt.target as CheckBox;
+     	myType.orderedValues = cbox.selected;
+     	if (cbox.selected) {
+     		allowOtherValuesBox.selected = false;
+     		allowOtherValuesBox.enabled = false;
+     	} else {
+     		allowOtherValuesBox.enabled = true;
+     	}
+     }
+        
+     
+     
+    private function keyHandler(event:KeyboardEvent):void {
+    	if (event.keyCode == Keyboard.ENTER) {
+       		addListItem(event);
+     }
+   	}
+	
+	/** React to changes in the input text box.  Use this to 
+	 * enable and disable the add button.
+	 * 
+	 * @param evt The event triggering this change.
+	 */
+	 private function handleTextChange(evt:Event):void {
+	 	var newText:String = StringUtil.trim(newValue.text);
+	 	var hasInput:Boolean = newText.length > 0;
+	 	var enableAdd:Boolean = hasInput && !allowedValues.contains(newText);
+	 	allowedValuesAddButton.enabled = enableAdd;
+	 }
+	
+  	/** Respond to changes in the template selection window by
+	 *  enabling and disabling the action buttons that require a
+	 *  selection.
+	 *
+	 * @param evt The event
+	 */
+	private function handleListItemSelection (evt:Event):void {
+		var hasSelection:Boolean = (allowedValuesList.selectedIndex != -1);
+		allowedValuesRemoveButton.enabled = !monotonic && hasSelection;
+		var moveEnabledBase:Boolean = !monotonic && hasSelection && allowedValues.length > 1
+		moveValueDownButton.enabled =  moveEnabledBase && allowedValuesList.selectedIndex < allowedValues.length - 1;
+		moveValueUpButton.enabled = moveEnabledBase && allowedValuesList.selectedIndex > 0;
+		// TODO: Decide if we should set the text input box to the value
+		//       for this box or not.
+//		if (hasSelection && !monotonic) {
+//			newValue.text = allowedValuesList.selectedItem.toString();
+//		} else {
+//			newValue.text = "";
+//		}
+	}
+	
+	private function scrollToSelection(list:ListBase):void {
+		list.scrollToIndex(list.selectedIndex);
+	}
+
+	/** Add a new row to the specified list object or edit the
+	 *  value of a selected object.
+ 	 *
+ 	 *  TODO: Decide whther this should clear the input field or not.
+ 	 * 
+	 * @param evt The event
+	 */
+    private function addListItem(evt:Event):void {
+    	var newText:String = StringUtil.trim(newValue.text);
+    		if (newText.length > 0 && !allowedValues.contains(newText)) {
+     		allowedValues.addItem(newText);
+    		UiUtil.adjustTileSizeForAddedItem(allowedValuesList, newText);
+    		allowedValuesList.selectedIndex = allowedValues.length - 1;
+    		// allowedValuesList.scrollToIndex(allowedValuesList.selectedIndex);
+    		callLater(scrollToSelection, [allowedValuesList]);
+  
+      		allowedValuesAddButton.enabled = false; // Try not to add multiple identical strings.
+    		newValue.text=""; // Clear value to make new input more efficient
+    	}
+    }
+    
+    
+    /** Remove the selected row from the specified List's data provider.
+     *   If nothing is selected, then do nothing.
+ 	 *
+	 * @param evt The event
+     */
+     private function removeListItem(evt:Event):void {
+     	var i:int = allowedValuesList.selectedIndex
+	    if (!monotonic && i >= 0) {
+	    	var removedItem:String = allowedValues.getItemAt(i) as String;
+	    	allowedValues.removeItemAt(i);
+	    	// TODO: Leave the selection at the same index unless
+	    	// there aren't enough, in which case, move down.
+	    	if (allowedValues.length > i) {  // More items, select next one
+	    		allowedValuesList.selectedIndex = i;
+	    		UiUtil.adjustTileSizeForRemovedItem(allowedValuesList, removedItem);
+  		 		callLater(scrollToSelection, [allowedValuesList]);
+ 	    	} else if (allowedValues.length == 0) {  // Empty list, no selection
+	    		allowedValuesList.selectedIndex = -1;
+	  		} else { // Last item deleted, move down.
+	    		allowedValuesList.selectedIndex = i -1;
+	    		UiUtil.adjustTileSizeForRemovedItem(allowedValuesList, removedItem);
+ 		  		callLater(scrollToSelection, [allowedValuesList]);
+ 			}	
+	    	handleTextChange(evt);
+	    } else {
+	    	allowedValuesRemoveButton.enabled = false;
+	    }	    
+     }
+     
+     /** Popup a dialog to edit the selected list item
+      *  and store the results back into the field.  Update
+      *  the size, if necessary.
+      */
+     private function editSelectedListItem(evt:Event):void {
+     	if (allowedValuesList.selectedIndex != -1) {
+     		inputDialog = PopUpManager.createPopUp(this,StringInputDialog,true) as StringInputDialog;
+     		inputDialog.text = allowedValuesList.selectedItem as String;
+     		inputDialog.enterConfirms = true;
+     		inputDialog.addEventListener(Event.COMPLETE, finishEditItem);
+     		inputDialog.addEventListener(Event.CANCEL, cancelEditItem);
+     		PopUpManager.centerPopUp(inputDialog);
+     	}
+     }
+
+	 private function finishEditItem(evt:Event):void {
+		var originalText:String = allowedValuesList.selectedItem as String;
+     	var newText:String = StringUtil.trim(inputDialog.input.text);
+     	if (newText.length == 0) {
+     		removeListItem(null);
+     	} else if (originalText != newText) {
+       		allowedValues.setItemAt(newText, allowedValuesList.selectedIndex);
+     		// Use both of these, since this is based on rendered size
+     		// which may not be the same as character count, depending on font.
+     		UiUtil.adjustTileSizeForRemovedItem(allowedValuesList, originalText);
+     		UiUtil.adjustTileSizeForAddedItem(allowedValuesList, newText); 
+ 	  		callLater(scrollToSelection, [allowedValuesList]);
+      	}
+     	PopUpManager.removePopUp(inputDialog);
+	}
+     
+     private function cancelEditItem(evt:Event):void {
+     	PopUpManager.removePopUp(inputDialog);
+     }
+     
+     private function setSelectedIndex(list:ListBase, index:int):void {
+     	list.selectedIndex = index;
+     }
+     
+    /** Move the selected item to an earlier place on the list.
+     * 
+     * @param evt Button click event
+     */
+     private function moveValueUp(evt:Event):void {
+     	var index:int = allowedValuesList.selectedIndex;
+     	// Make sure we have a selection and a place to move it.
+     	if (index != -1 && index > 0) {
+     		var itemToMove:Object = allowedValues.removeItemAt(index);
+     		allowedValues.addItemAt(itemToMove, index - 1);
+     		callLater(setSelectedIndex, [allowedValuesList, index - 1]);
+     	}
+     }
+     
+    /** Move the selected item to an later place on the list.
+     * 
+     * @param evt Button click event
+     */
+     private function moveValueDown(evt:Event):void {
+    	var index:int = allowedValuesList.selectedIndex;
+     	// Make sure we have a selection and a place to move it.
+     	if (index != -1 && index < allowedValues.length - 1) {
+     		var itemToMove:Object = allowedValues.removeItemAt(index);
+     		allowedValues.addItemAt(itemToMove, index + 1);
+     		callLater(setSelectedIndex, [allowedValuesList, index + 1]); 
+     	}    	
+     }
+     
+     
+     /** Function to show the event for debugging purposes.
+     */
+     private function showEvent(evt:Event):void {
+     	trace("AllowedValuesList: " + evt + " type=" + evt.type + " target=" + evt.target);
+     }
+ 		]]>
+	</mx:Script>
+	
+	<!-- TODO: Consider using a TileList instead, for more compact representation of short items.
+	           But TileList cannot be editable.  That would need a different editing mode, then. -->
+	<!-- Original
+	<mx:List id="allowedValuesList" height="90%" dataProvider="{allowedValues}" 
+						verticalScrollPolicy="auto" width="100%"
+						change="handleListItemSelection(event)"
+						editable="{!monotonic}"/>
+	-->
+	<mx:TileList id="allowedValuesList" height="90%" dataProvider="{allowedValues}" 
+						verticalScrollPolicy="auto" width="100%"
+						change="handleListItemSelection(event)"
+						creationComplete="UiUtil.adjustTileSizeToFit(allowedValuesList)"
+						doubleClickEnabled="true" doubleClick="editSelectedListItem(event)"/>
+	<mx:HBox width="100%">
+		<mx:TextInput id="newValue" width="100" change="handleTextChange(event)" />
+		<mx:Button id="allowedValuesAddButton" label="+" click="addListItem(event);" enabled="false"/>
+		<mx:Spacer width="5"/>
+		<mx:Button id="allowedValuesRemoveButton" label="-" fontWeight="bold"
+			click="removeListItem(event);" enabled="false"/>
+		<mx:Button id="moveValueUpButton" label="&lt;"
+			click="moveValueUp(event)" enabled="false"
+			toolTip="Move selected item up (earlier) in list"/>
+		<mx:Button id="moveValueDownButton" label="&gt;"
+			click="moveValueDown(event)" enabled="false"	
+			toolTip="Move selected item down (later) in list"/>
+	</mx:HBox>
+	<mx:HBox width="100%">
+		<!-- Ignore warning about not detecting changes, since we only need the data
+		     binding to establish the initial value, not react to changes. -->
+		<mx:CheckBox id="allowOtherValuesBox" label="Allow other values"
+					 visible="{allowOtherValues}"
+					 selected="{myType[allowOtherValuesFlagName]}"
+					 change="changeAllowOthers(event)"/>
+		<mx:Spacer width="10"/>
+		<mx:CheckBox id="orderedBox" label="Ordered"
+			 selected="{myType.orderedValues}"
+			 change="changeOrdered(event)"
+			 visible="{orderAllowed}"/>
+   </mx:HBox>
+</mx:VBox>

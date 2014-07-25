@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: ModelDesignPanel.mxml 50 2011-06-09 22:55:52Z taruss2000@gmail.com $ 
+     $Date: 2011-06-09 15:55:52 -0700 (Thu, 09 Jun 2011) $
+     $Revision: 50 $ -->
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical"
+	width="100%" height="100%"
+	preinitialize="init();"
+	creationComplete="refresh()">
+	
+	 <mx:Script>
+	<![CDATA[
+		import edu.isi.bmkeg.kefed.store.persevere.YogoModelStore;
+		import edu.isi.bmkeg.kefed.store.json.YogoSerializer;
+		import mx.events.CloseEvent;
+		
+    	import edu.isi.bmkeg.kefed.store.IModelStore;
+    	import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
+    	import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+    	
+    	import flare.vis.operator.layout.IndentedTreeLayout;
+
+		import edu.isi.bmkeg.kefed.app.KefedAppEvent;
+		import edu.isi.bmkeg.kefed.app.KefedAppEventDispatcher;
+
+		import edu.isi.bmkeg.kefed.elements.KefedModel;
+		
+		import mx.collections.ArrayCollection;
+
+		import mx.controls.Alert;
+
+		import mx.core.Application;
+		import mx.core.IFlexDisplayObject;
+
+		import mx.rpc.events.FaultEvent;
+		import mx.managers.PopUpManager;
+		import mx.managers.CursorManager;
+
+		[Bindable]
+		public var modelStore:IModelStore;
+		
+		[Bindable]
+	    public var schemaStore:IModelStore = null;
+	    
+		[Bindable]
+		public var templateList:ArrayCollection;
+		
+		[Bindable]
+		private var ontologyList:ArrayCollection;
+
+		[Bindable]
+		private var template:KefedModel;
+		
+		[Bindable]
+		public var deleteAllowed:Boolean = true;
+		[Bindable]
+		public var createAllowed:Boolean = true;
+		[Bindable]
+		public var editAllowed:Boolean = true;
+
+
+		private var deletePopup:ConfirmDeleteDialog;
+		// TODO:  Unify naming.  This is a bit incoherent at the moment because
+		//        the old nomenclature was Template and Model and the new names
+		//        are Model and Experiment.
+		private var newDesignPopup:NewKefedTemplateDialog;
+		
+		// Flags to control behavior of the selection lists after they
+		// have been refreshed.  If this is true, then the last item
+		// in the list is selected.  This will be set true after adding
+		// a new item, so it can be immediately selected for editing.
+		private var selectLastModel:Boolean = false;
+
+    	public function init():void {
+   		
+    		modelStore.addEventListener(ModelStoreEvent.LIST, handleListKefedTemplates);
+    		modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleLoadKefedTemplate);
+    		modelStore.addEventListener(ModelStoreEvent.DELETE, handleDeleteKefedTemplate);
+    		modelStore.addEventListener(ModelStoreEvent.INSERT, handleInsertKefedTemplate);
+    		modelStore.addEventListener(ModelStoreEvent.SAVE, handleSaveKefedTemplate);
+    		modelStore.addEventListener(FaultEvent.FAULT, callError);
+    		
+    		if (schemaStore != null) {
+    			schemaStore.addEventListener(FaultEvent.FAULT, callError);
+    		}
+   		    		    		
+    		if( Application.application.eventDispatcher != null ) {
+    			var ed:EventDispatcher = Application.application.eventDispatcher;
+				ed.addEventListener(KefedAppEvent.SAVE_DESIGN_EDIT, saveEditedModel);
+				ed.addEventListener(KefedAppEvent.CANCEL_DESIGN_EDIT, finishedEditing);
+			}
+		}
+		
+		private function callError(e:FaultEvent):void {
+			cursorManager.removeBusyCursor();
+			Alert.show(e.message.toString());				
+		}
+
+    	public function refresh(e:Event=null):void {
+    		CursorManager.setBusyCursor();
+			modelStore.listModels();
+    	}
+    	
+    	/** Respond to changes in the template selection window by
+    	 *  enabling and disabling the action buttons that require a
+    	 *  selection.
+	   	 *
+    	 * @param evt The event
+    	 */
+    	private function handleTemplateChange (evt:Event):void {
+    		var enable:Boolean = (templateGrid.selectedIndex != -1);
+    		copyDesignButton.enabled = createAllowed && enable;
+    		editDesignButton.enabled = editAllowed && enable;
+    		deleteDesignButton.enabled = deleteAllowed && enable;    	
+    	}
+
+		
+		/**
+		 * New Templates
+		 */
+		private function newTemplate():void {			
+			newDesignPopup = PopUpManager.createPopUp(this, NewKefedTemplateDialog, true) as NewKefedTemplateDialog;
+			newDesignPopup.addEventListener(CloseEvent.CLOSE, closeNewTemplateDialog);
+			newDesignPopup.OkButton.addEventListener(MouseEvent.CLICK, insertNewTemplate);
+			newDesignPopup.cancelButton.addEventListener(MouseEvent.CLICK, closeNewTemplateDialog);
+			mx.managers.PopUpManager.centerPopUp(newDesignPopup);
+		}
+		
+		private function insertNewTemplate(e:Event):void {
+			if (newDesignPopup.Name.text != null && newDesignPopup.Name.text != "") {
+				CursorManager.setBusyCursor();
+				var model:KefedModel = new KefedModel();
+				model.type = "template";
+				model.modelName = newDesignPopup.Name.text;
+				model.source = newDesignPopup.Source.text;
+				model.citeKey = newDesignPopup.Citation.text;
+				model.description = newDesignPopup.Description.text;
+				model.updateTime();
+				modelStore.insertModel(model);
+				selectLastModel = true;
+			}
+			closeNewTemplateDialog(e);
+		}
+		
+		private function closeNewTemplateDialog(e:Event):void {
+			mx.managers.PopUpManager.removePopUp(newDesignPopup);
+		}
+		
+		private function handleInsertKefedTemplate(e:ModelStoreEvent):void {
+			trace("Insert Template Handler");
+			modelStore.listModels();
+		}
+
+		/**
+		 * Delete a Template
+		 */
+		private function deleteTemplate():void {	
+			
+			deletePopup = ConfirmDeleteDialog(
+					PopUpManager.createPopUp(this, ConfirmDeleteDialog, true));
+					
+			deletePopup.addEventListener("close", cancelDeleteTemplate);
+            deletePopup["cancelButton"].addEventListener("click", cancelDeleteTemplate);   
+            deletePopup["okButton"].addEventListener("click", confirmDeleteTemplate); 
+			mx.managers.PopUpManager.centerPopUp(deletePopup);		
+			
+		}
+
+		private function confirmDeleteTemplate(event:MouseEvent):void {	
+			var i:int = templateGrid.selectedIndex;
+			var o:Object = templateList[i];
+			var uid:String = o.uid;
+			CursorManager.setBusyCursor();
+			modelStore.deleteModel(uid);
+			PopUpManager.removePopUp(deletePopup);
+		}
+
+		private function cancelDeleteTemplate(event:MouseEvent):void {	
+			PopUpManager.removePopUp(deletePopup);
+		}
+
+		private function handleDeleteKefedTemplate(e:ModelStoreEvent):void {
+			modelStore.listModels();
+		}
+		
+		/**
+		 * Copy a Template
+		 */
+		private function copyTemplate():void {
+			// Copy a template by reading it in, and then using the handler to
+			// make a clone and insert it into the store.
+			var i:int = templateGrid.selectedIndex;
+			var o:Object = templateList[i];
+			var uid:String = o.uid;
+			CursorManager.setBusyCursor();
+			modelStore.removeEventListener(ModelStoreEvent.RETRIEVE, handleLoadKefedTemplate);
+			modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleCopyKefedTemplate);
+			modelStore.retrieveModel(uid);
+		}
+		
+		private function handleCopyKefedTemplate (e:ModelStoreEvent):void {
+			trace("Copy template handler",e," model=",e.model);
+			var model:KefedModel = e.model.clone();
+			model.modelName = model.modelName + " copy";
+			model.updateTime();
+			model.updateUID();
+			modelStore.removeEventListener(ModelStoreEvent.RETRIEVE, handleCopyKefedTemplate);
+			modelStore.addEventListener(ModelStoreEvent.RETRIEVE, handleLoadKefedTemplate);
+			modelStore.insertModel(model);
+			selectLastModel = true;
+		}
+
+		/**
+		 * Edit a Template
+		 */
+		private function editTemplate():void {
+			var i:int = templateGrid.selectedIndex;
+			// Sometimes a double click will be registered in response to
+			// double clicks with a modifier key down.
+			// cause a selection on the first click, followed by a de-selection
+			// on the second click. 
+			// Also, double clicks for sorting in the headers also trigger 
+			// the double-click linked editing function.
+			// So we make sure that we really have a 
+			// selected item before we actually try to get it.  - tar
+			if (i > -1) {
+				var o:Object = templateList[i];
+				var uid:String = o.uid;
+				trace("Load model from uid",uid);
+				CursorManager.setBusyCursor();
+				modelStore.retrieveModel(uid);
+				trace("Finished loading call",uid);
+			}
+		}
+		
+		private function handleListKefedTemplates(e:ModelStoreEvent):void {
+			// trace("Handle List Templates");
+			CursorManager.removeBusyCursor();
+			this.templateList = e.modelList;
+			if (selectLastModel) {
+				templateGrid.selectedIndex = this.templateList.length - 1;
+				templateGrid.scrollToIndex(templateGrid.selectedIndex);
+				selectLastModel = false;
+			}
+			handleTemplateChange(e);		
+		}		
+
+		private function handleLoadKefedTemplate(e:ModelStoreEvent):void {
+			trace("Load template handler",e," model=",e.model);
+			CursorManager.removeBusyCursor();
+			this.template = e.model;
+			
+			if( Application.application.eventDispatcher != null ) {
+				Application.application.currentState = "Design_State";
+				Application.application.eventDispatcher.
+						dispatchBioScholarEvent(KefedAppEvent.EDIT_DESIGN, this.template);
+			}
+		}
+		
+		private function saveEditedModel(e:Event):void {
+			CursorManager.setBusyCursor();
+			this.template.updateTime();
+			modelStore.saveModel(this.template);
+			if (schemaStore != null) {
+				schemaStore.saveModel(this.template);
+			}
+		}
+		
+		private function handleSaveKefedTemplate(e:ModelStoreEvent):void {
+			CursorManager.removeBusyCursor();
+			this.refresh();
+			finishedEditing(null);
+		}
+		
+		private function finishedEditing(event:KefedAppEvent):void {
+			if (Application.application.eventDispatcher != null) {
+				Application.application.eventDispatcher.
+					dispatchBioScholarEvent(KefedAppEvent.DONE_EDIT_DESIGN, this.template);
+			}
+		}
+
+    	]]>
+    </mx:Script>
+
+	<mx:DataGrid id="templateGrid" 
+					dataProvider="{templateList}" 
+					width="100%" 
+					height="100%" 
+					editable="false" 
+					doubleClickEnabled="true"
+					doubleClick="editTemplate();"
+					change="handleTemplateChange(event);">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Design Name" dataField="modelName" />
+			<mx:DataGridColumn headerText="Source" dataField="source" />
+			<mx:DataGridColumn headerText="Date" dataField="dateTime" />
+		</mx:columns>
+		
+	</mx:DataGrid>
+
+    <mx:ControlBar width="100%">
+        <mx:Spacer width="100%"/>
+        <mx:Button id="newDesignButton" label="New Design" click="newTemplate();" enabled="{createAllowed}"/>
+        <mx:Button id="copyDesignButton" label="Copy Design" click="copyTemplate();" enabled="false"/>
+        <mx:Button id="editDesignButton" label="Edit Design" click="editTemplate();" enabled="false"/>
+        <mx:Button id="deleteDesignButton" label="Delete Design" click="deleteTemplate();" enabled="false"/>
+    </mx:ControlBar>
+	
+</mx:Panel>

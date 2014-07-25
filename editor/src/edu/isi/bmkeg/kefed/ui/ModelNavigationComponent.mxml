@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: ModelNavigationComponent.mxml 38 2011-03-18 05:41:28Z taruss2000@gmail.com $ 
+     $Date: 2011-03-17 22:41:28 -0700 (Thu, 17 Mar 2011) $
+     $Revision: 38 $ -->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+   		 xmlns:diagview="com.kapit.diagram.view.*"
+   		 xmlns:kutil="edu.isi.bmkeg.kefed.ui.kapit.*">
+
+ 	<mx:Script>
+		<![CDATA[
+			import edu.isi.bmkeg.kefed.ui.kapit.DiagramMappings;
+			import com.kapit.diagram.view.DiagramLink;
+			import mx.controls.Alert;
+		import mx.events.SliderEvent;
+		import mx.controls.sliderClasses.Slider;
+		import mx.managers.CursorManager;
+    	import mx.utils.StringUtil;
+    	import edu.isi.bmkeg.kefed.store.ModelStoreEvent;
+    	import edu.isi.bmkeg.kefed.store.IDataStore;
+    	import edu.isi.bmkeg.kefed.store.persevere.PersevereModelStore;
+    	import edu.isi.bmkeg.kefed.store.IModelStore;
+        import com.kapit.diagram.DiagramEvent;
+		import com.kapit.diagram.layouts.utils.Constants;            
+        import com.kapit.diagram.library.SVGAssetLibrary;
+        import com.kapit.diagram.model.DiagramModel;
+		import com.kapit.diagram.proxies.DiagramProxy;
+        import com.kapit.diagram.proxies.KDLProxy;
+		import com.kapit.diagram.view.DiagramObject;
+		import com.kapit.diagram.view.DiagramSprite;
+		import com.kapit.diagram.view.DiagramView;
+        
+        import edu.isi.bmkeg.kefed.app.KefedAppEvent;
+        import edu.isi.bmkeg.kefed.app.KefedAppEventDispatcher;
+		
+		import edu.isi.bmkeg.kefed.elements.KefedObject;
+		import edu.isi.bmkeg.kefed.elements.KefedModel;
+		import edu.isi.bmkeg.kefed.ui.kapit.KefedLinkProxy;
+		import edu.isi.bmkeg.kefed.ui.kapit.KefedObjectProxy;
+		import edu.isi.bmkeg.kefed.ui.UiUtil;
+		
+		[Bindable]
+		public var model:KefedModel  = new KefedModel();
+		
+		[Bindable]
+		public var callbackFunction:String = null;
+		
+		[Bindable]
+		public var zoomFactor:Number = 1;
+		
+	    private var _proxy:DiagramProxy;
+	    
+		/** Set up the diagram information.
+		 */
+		private function configureDiagram():void {
+            _proxy = new KDLProxy(diagram);
+            diagram.multipanel=false;
+            diagram.selectionenabled=true;
+            diagram.multipleselection=false;
+            diagram.keyboardenabled=false;
+            diagram.dragenabled=false;
+            diagram.dropenabled=false;
+            var sprites:Array = [];
+	
+			var diagModel:DiagramModel = new DiagramModel(DiagramMappings.getDiagramMappings());
+			
+			diagram.model = diagModel;
+
+			if( diagram != null && _proxy != null) {
+
+				diagram.addEventListener(DiagramEvent.SELECTION_CHANGED,
+							handleDiagramSelectionChanged);
+	
+	            _proxy.importGraph();
+	            _proxy.exportGraph(Constants.RADIAL_LAYOUT);
+	
+            }    
+
+			this.loadModel(this.model);
+        }
+        
+        /** Load the given KefedModel and set up the diagram
+        *   to show the graphical view of it.
+        * 
+        * @param model The model that needs to be loaded into the diagram.
+        */
+		public function loadModel(model:KefedModel):void {
+        	
+            this.model = model;
+			
+			// Hack: loading the model the 2nd time triggers the 
+			// editing updates when you load the diagram from XML
+			// Having this temporary model that gets edited by 
+			// the update and then discarded fixes the problem
+			var tempModel:KefedModel = new KefedModel();
+			KefedObjectProxy._graph = tempModel;
+			KefedLinkProxy._graph = tempModel;
+			
+			if( diagram != null && _proxy != null) {
+
+				this.diagram.fromXML(model.diagramXML);
+				_proxy.importGraph()
+	            
+	            zoomControl.setZoom(zoomFactor);    
+            }    
+			
+			KefedObjectProxy._graph = model;
+			KefedLinkProxy._graph = model;
+			diagram.deselectAll();
+        }
+        
+        /** Respond to a selection event in the diagram by sending an
+        *   appropriate message to the callback JavaScript function.
+        * 
+        * @param e The selection event that was just received.
+        */
+        private function handleDiagramSelectionChanged(e:Event):void
+		{
+			var arr:Array=diagram.getSelectedObjects();
+			
+			if (arr == null) { // Annotation selections, no selection.
+				trace("Selected object array is null");
+			} else if ( arr.length == 0 ) {
+				doCallback("deselect","null","null");
+			} else if ( arr.length == 1 ) { 
+				var dObj:DiagramObject = DiagramObject(arr[0]);
+				
+				if (dObj is DiagramSprite) {
+					doCallback("select",(dObj as DiagramSprite).spriteid,dObj.dataobjectid);
+				} else if (dObj is DiagramLink) {
+					doCallback("select","Link",dObj.dataobjectid);
+				} else {
+					trace("Unhandled Selected object type ", dObj.className, "  ", dObj );
+				}
+			} else {
+				trace("More than one selected object!  multipleselection = ", diagram.multipleselection);
+				Alert.show("Only a single selection is supported!");
+			}
+		}
+
+		
+	  /** Handles calling back to a JavaScript function.
+       * 
+       *  The callback function uses a URI-encoded key=value string.  This is
+       *  the single argument for the callback function.
+       * 
+       *  Action, type and element uid are reported.  The action will be either
+       *  "select" or "deselect".  If selected, then the type of object
+       *  and the modelUid will also be reported.  Otherwise these values will
+       *  be present but with the value "null".
+       * 
+       *  Types are
+       * 
+       *  
+       * @param action The to report as the value of the "action" key.
+       * @param type The type of object selected as the value of the "type" key.
+       * @param elementUid The UID of the model element selected.
+       */
+      private function doCallback(action:String, type:String, elementUid:String="null"):void {
+      	var parameters:Object = {action:action, type:type, uid:elementUid, zoom:zoomControl.value.toString()};
+      	UiUtil.doCallback(callbackFunction, null, parameters);
+      }
+ 
+		
+	]]>
+	</mx:Script>
+
+	<mx:Panel id="flatPanel" width="100%" height="100%" headerHeight="0"
+			backgroundAlpha="{flatPanel.getStyle('borderAlpha')}" 
+			backgroundColor="{flatPanel.getStyle('borderColor')}">                
+			<mx:HBox width="100%" height="30" verticalAlign="middle" >
+				<mx:Label text="{model.modelName}" fontWeight="bold"/>
+				<mx:Text text="Zoom: "/>
+				<kutil:DiagramZoomHSlider id="zoomControl"
+			        	minimum="0" maximum="1.7" value="{zoomFactor}" diagram="{diagram}"/>
+			</mx:HBox>
+			<mx:HBox width="100%" height="100%" verticalAlign="middle" >
+				<diagview:DiagramView width="100%" height="100%" id="diagram"
+					  creationComplete="configureDiagram();">
+				</diagview:DiagramView>
+			</mx:HBox>
+		</mx:Panel>
+</mx:VBox>
