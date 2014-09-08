@@ -1,0 +1,69 @@
+[submodule "vpdmf-kefed"]
+	path = vpdmf-kefed
+	url = https://github.com/BMKEG/vpdmf-kefed
+[submodule "vpdmf-ooevv"]
+	path = vpdmf-ooevv
+	url = https://github.com/BMKEG/vpdmf-ooevv
+[submodule "vpdmf-terminology"]
+	path = vpdmf-terminology
+	url = https://github.com/BMKEG/vpdmf-terminology
+[submodule "vpdmf-people"]
+	path = vpdmf-people
+	url = https://github.com/BMKEG/vpdmf-people
+[submodule "vpdmf-ftd"]
+	path = vpdmf-ftd
+	url = https://github.com/BMKEG/vpdmf-ftd
+[submodule "vpdmf-digitalLibrary"]
+	path = vpdmf-digitalLibrary
+	url = https://github.com/BMKEG/vpdmf-digitalLibrary
+[submodule "vpdmf-bioscholar"]
+	path = vpdmf-bioscholar
+	url = https://github.com/BMKEG/vpdmf-bioscholar
+[submodule "bmkeg-parent"]
+	path = bmkeg-parent
+	url = https://github.com/BMKEG/bmkeg-parent
+[submodule "vpdmf-parent"]
+	path = vpdmf-parent
+	url = https://github.com/BMKEG/vpdmf-parent
+[submodule "bmkeg-as-parent"]
+	path = bmkeg-as-parent
+	url = https://github.com/BMKEG/bmkeg-as-parent
+[submodule "digitalLibraryClientComponents"]
+	path = digitalLibraryClientComponents
+	url = https://github.com/BMKEG/digitalLibraryClientComponents
+[submodule "digitalLibraryDao"]
+	path = digitalLibraryDao
+	url = https://github.com/BMKEG/digitalLibraryDao
+[submodule "lapdftext"]
+	path = lapdftext
+	url = https://github.com/BMKEG/lapdftext
+[submodule "lapdftextClientComponents"]
+	path = lapdftextClientComponents
+	url = https://github.com/BMKEG/lapdftextClientComponents
+[submodule "lapdftextVpdmf"]
+	path = lapdftextVpdmf
+	url = https://github.com/BMKEG/lapdftextVpdmf
+[submodule "kefedClientComponents"]
+	path = kefedClientComponents
+	url = https://github.com/BMKEG/kefedClientComponents
+[submodule "kefedDao"]
+	path = kefedDao
+	url = https://github.com/BMKEG/kefedDao
+[submodule "ooevvDao"]
+	path = ooevvDao
+	url = https://github.com/BMKEG/ooevvDao
+[submodule "bioscholarSystem"]
+	path = bioscholarSystem
+	url = https://github.com/BMKEG/bioscholarSystem
+[submodule "bioscholar"]
+	path = bioscholar
+	url = ./bioscholar
+[submodule "digitalLibraryClientApp"]
+	path = digitalLibraryClientApp
+	url = ./digitalLibraryClientApp/
+[submodule "kefedClientApp"]
+	path = kefedClientApp
+	url = ./kefedClientApp/
+[submodule "lapdftextClientApp"]
+	path = lapdftextClientApp
+	url = ./lapdftextClientApp/

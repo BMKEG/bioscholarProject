@@ -1,5 +1,6 @@
 .history
 .settings
+.project
 bin/
 build/
 dist/
