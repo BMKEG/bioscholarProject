@@ -28,7 +28,7 @@ Note that in the current installation process we skip unit tests. This is less t
 3. mvn -DskipTests clean install
 ```
 
-> **IMPORTANT** Due to licensing restrictions of a subcomponent library, this build will currently fail with the `kefedClientComponent` submodule. We are working to switch out the offending library as a priority and will present a fully open source version as soon as possible. 
+> **IMPORTANT** Due to licensing restrictions of a subcomponent library, this build will currently **fail** with the `kefedClientComponent` submodule. We are working to switch out the offending library as a priority and will present a fully open source version as soon as possible. 
 
 
 ### Running the project
