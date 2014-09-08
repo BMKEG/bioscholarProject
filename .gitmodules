@@ -64,3 +64,6 @@
 [submodule "kefedClientApp"]
 	path = kefedClientApp
 	url = https://github.com/BMKEG/kefedClientApp
+[submodule "lapdftextClientApp"]
+	path = lapdftextClientApp
+	url = https://github.com/BMKEG/lapdftextClientApp
