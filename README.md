@@ -24,10 +24,9 @@ This is a slightly involved process, since there are several dependencies that n
 
 Note that in the current installation process we skip unit tests. This is less than ideal but reflects the 'alpha' nature of the current development version. 
 
-1. build the parent projects 
-  * (*these provide version numbers and maven respositories for upload*)  
+1. build the parent projects (*these provide version numbers and maven respositories for upload*)  
   2. `cd bmkeg-parent`; `mvn -DskipTests clean install`
   3. `cd bmkeg-as-parent`; `mvn -DskipTests clean install`
 1. build the `vpdmf-bioscholar` project (*this generates a mysql database with local java and actionscript libraries for the systems data model using the `VPDMf` system*)  
   2. `cd vpdmf-bioscholar`; `mvn -DskipTests clean install`
-1.  
+1. Build java  
