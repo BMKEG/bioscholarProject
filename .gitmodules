@@ -55,12 +55,12 @@
 [submodule "bioscholarSystem"]
 	path = bioscholarSystem
 	url = https://github.com/BMKEG/bioscholarSystem
-[submodule "lapdftextClientApp"]
-	path = lapdftextClientApp
-	url = ./lapdftextClientApp/
 [submodule "bioscholar"]
 	path = bioscholar
 	url = https://github.com/BMKEG/bioscholar
 [submodule "digitalLibraryClientApp"]
 	path = digitalLibraryClientApp
 	url = https://github.com/BMKEG/digitalLibraryClientApp
+[submodule "kefedClientApp"]
+	path = kefedClientApp
+	url = https://github.com/BMKEG/kefedClientApp
