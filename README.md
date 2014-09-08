@@ -14,19 +14,27 @@ This is a slightly involved process, since there are several dependencies that n
 
 * Maven (version 3+)
 * Git (naturally)
+* MySQL version 5+
+* Java 7
+* Flex 4.5.1
 
-#### For development
+### Installing the project
 
-* Recommend use of the Spring Tool Suite as a development environment 
-* Client development is based on Flex (which is problematic since Adobe is no longer developing this language). We have not yet migrated to the open source version from Apache but are using Adobe Flex 4.5.1. This is due to maintaining stability for our established code base going forward.  
+Note that in the current installation process we skip unit tests. This is less than ideal but reflects the 'alpha' nature of the current development version. Note that this process may take a long time. 
 
-### Installing the submodules
+> **IMPORTANT** Due to licensing restrictions of a subcomponent library, this build will currently fail with the `kefedClientComponent` submodule. We are working to switch out the offending library as a priority and will present a fully open source version as soon as possible. 
 
-Note that in the current installation process we skip unit tests. This is less than ideal but reflects the 'alpha' nature of the current development version. 
+```
+1. git clone --recursive https://github.com/BMKEG/bioscholarProject/
+2. cd bioscholarProject
+3. mvn -DskipTests clean install
+```
 
-1. build the parent projects (*these provide version numbers and maven respositories for upload*)  
-  2. `cd bmkeg-parent`; `mvn -DskipTests clean install`
-  3. `cd bmkeg-as-parent`; `mvn -DskipTests clean install`
-1. build the `vpdmf-bioscholar` project (*this generates a mysql database with local java and actionscript libraries for the systems data model using the `VPDMf` system*)  
-  2. `cd vpdmf-bioscholar`; `mvn -DskipTests clean install`
-1. Build java  
+### Running the project
+```
+1. cd bioscholar
+3. mvn jetty:start
+```
+
+
+
