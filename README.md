@@ -22,13 +22,14 @@ This is a slightly involved process, since there are several dependencies that n
 
 Note that in the current installation process we skip unit tests. This is less than ideal but reflects the 'alpha' nature of the current development version. Note that this process may take a long time. 
 
-> **IMPORTANT** Due to licensing restrictions of a subcomponent library, this build will currently fail with the `kefedClientComponent` submodule. We are working to switch out the offending library as a priority and will present a fully open source version as soon as possible. 
-
 ```
 1. git clone --recursive https://github.com/BMKEG/bioscholarProject/
 2. cd bioscholarProject
 3. mvn -DskipTests clean install
 ```
+
+> **IMPORTANT** Due to licensing restrictions of a subcomponent library, this build will currently fail with the `kefedClientComponent` submodule. We are working to switch out the offending library as a priority and will present a fully open source version as soon as possible. 
+
 
 ### Running the project
 ```
