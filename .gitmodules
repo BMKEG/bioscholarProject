@@ -55,9 +55,6 @@
 [submodule "bioscholarSystem"]
 	path = bioscholarSystem
 	url = https://github.com/BMKEG/bioscholarSystem
-[submodule "digitalLibraryClientApp"]
-	path = digitalLibraryClientApp
-	url = ./digitalLibraryClientApp/
 [submodule "kefedClientApp"]
 	path = kefedClientApp
 	url = ./kefedClientApp/
