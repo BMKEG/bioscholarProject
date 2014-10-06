@@ -13,13 +13,16 @@
 		<module>bmkeg-parent</module>
 		<module>bmkeg-as-parent</module>
 		<module>vpdmf-bioscholar</module>
-		<module>vpdmf-digitalLibrary</module>
-		<module>vpdmf-ftd</module>
-		<module>vpdmf-kefed</module>
 		<module>vpdmf-ooevv</module>
-		<module>vpdmf-parent</module>
-		<module>vpdmf-people</module>
-		<module>vpdmf-terminology</module>
+		<module>digitalLibraryDao</module>
+                <module>ooevvDao</module>
+                <module>kefedDao</module>
+                <module>digitalLibraryClientComponents</module>
+               <module>kefedClientComponents</module>
+               <module>digitalLibraryClientApp</module>
+               <module>kefedClientApp</module>
+               <module>bioscholarSystem</module>
+               <module>bioscholar</module>
 	</modules>
 
 </project>
