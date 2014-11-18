@@ -67,3 +67,6 @@
 [submodule "lapdftextClientApp"]
 	path = lapdftextClientApp
 	url = https://github.com/BMKEG/lapdftextClientApp
+[submodule "bmkeg-nlp-utils"]
+	path = bmkeg-nlp-utils
+	url = https://github.com/BMKEG/bmkeg-nlp-utils
