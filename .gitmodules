@@ -70,3 +70,12 @@
 [submodule "bmkeg-nlp-utils"]
 	path = bmkeg-nlp-utils
 	url = https://github.com/BMKEG/bmkeg-nlp-utils
+[submodule "kefedDataEditorApp"]
+	path = kefedDataEditorApp
+	url = ./kefedDataEditorApp
+[submodule "kefedModelEditorApp"]
+	path = kefedModelEditorApp
+	url = ./kefedModelEditorApp
+[submodule "terminologyDao"]
+	path = terminologyDao
+	url = ./terminologyDao/
